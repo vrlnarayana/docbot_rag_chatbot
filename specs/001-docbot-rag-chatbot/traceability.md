@@ -64,4 +64,4 @@ Every functional requirement maps to the tasks that implement it, the source fil
 | SC-004 every non-refused answer cites a real chunk | T020, T035 | `tests/e2e/test_sample_corpus.py::test_sc_004_every_answer_cites_a_real_chunk` |
 | SC-005 table, scanned-PDF and image questions correct | T013, T023, T035 | `tests/e2e/test_sample_corpus.py::test_sc_005_table_scan_and_image_questions` |
 | SC-006 every FR tested, no gaps | T037 | This file |
-| SC-007 newcomer to cited answer in < 10 min | T036 | README quick-start |
+| SC-007 newcomer to cited answer in < 10 min | T036 | README quick-start, timed from a fresh clone on 2026-10-25: pip install 4 min 49 s, first API start with model download 60 s, first cited answer at about 6 min |
