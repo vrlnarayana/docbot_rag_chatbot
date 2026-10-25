@@ -87,6 +87,12 @@ class LlmAnswer(_Strict):
     grounded: bool
 
 
+class StandaloneQuestion(_Strict):
+    """What an LLM must return when rewriting a follow-up (FR-070)."""
+
+    question: str = Field(min_length=2, max_length=1000)
+
+
 class GoldenCase(_Strict):
     question: str
     expected_file: str | None = None

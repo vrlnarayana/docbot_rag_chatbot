@@ -12,11 +12,19 @@ import anthropic
 import openai
 from pydantic import ValidationError
 
-from app.adapters.generator_ollama import SYSTEM_PROMPT, VALIDATION_ATTEMPTS, build_prompt
-from app.core.models import GeneratedAnswer, LlmAnswer, RetrievedChunk
+from app.adapters.generator_ollama import (
+    REWRITE_PROMPT,
+    SYSTEM_PROMPT,
+    VALIDATION_ATTEMPTS,
+    build_prompt,
+    build_rewrite_prompt,
+    parse_standalone,
+)
+from app.core.models import ChatTurn, GeneratedAnswer, LlmAnswer, RetrievedChunk, StandaloneQuestion
 from app.core.ports import Generator
 
 SCHEMA = LlmAnswer.model_json_schema()
+REWRITE_SCHEMA = StandaloneQuestion.model_json_schema()
 
 
 class _Declined(Exception):
@@ -30,8 +38,31 @@ class _CloudGenerator:
     def __init__(self, fallback: Generator) -> None:
         self._fallback = fallback
 
-    async def _complete(self, question: str, chunks: list[RetrievedChunk]) -> str:
+    async def _request(self, system: str, user: str, schema: dict[str, Any], name: str) -> str:
+        """One structured-output call; raises `_Declined` or the provider's errors."""
         raise NotImplementedError
+
+    async def _complete(self, question: str, chunks: list[RetrievedChunk]) -> str:
+        return await self._request(
+            SYSTEM_PROMPT, build_prompt(question, chunks), SCHEMA, "llm_answer"
+        )
+
+    async def rewrite(self, question: str, history: list[ChatTurn]) -> str | None:
+        """FR-070: a standalone version of a follow-up, or None (the local rule takes over)."""
+        try:
+            content = await self._request(
+                REWRITE_PROMPT,
+                build_rewrite_prompt(question, history),
+                REWRITE_SCHEMA,
+                "standalone_question",
+            )
+        except _Declined:
+            return None
+        except Exception as exc:
+            if self._describe(exc) is None:
+                raise
+            return None
+        return parse_standalone(content)
 
     def _describe(self, exc: Exception) -> str | None:
         """An actionable reason for a provider error, or None if `exc` is not one."""
@@ -82,16 +113,16 @@ class OpenAIGenerator(_CloudGenerator):
         self._client = client
         self._model = model
 
-    async def _complete(self, question: str, chunks: list[RetrievedChunk]) -> str:
+    async def _request(self, system: str, user: str, schema: dict[str, Any], name: str) -> str:
         response: Any = await self._client.chat.completions.create(
             model=self._model,
             messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": build_prompt(question, chunks)},
+                {"role": "system", "content": system},
+                {"role": "user", "content": user},
             ],
             response_format={
                 "type": "json_schema",
-                "json_schema": {"name": "llm_answer", "strict": True, "schema": SCHEMA},
+                "json_schema": {"name": name, "strict": True, "schema": schema},
             },
         )
         message = response.choices[0].message
@@ -126,13 +157,13 @@ class AnthropicGenerator(_CloudGenerator):
         self._client = client
         self._model = model
 
-    async def _complete(self, question: str, chunks: list[RetrievedChunk]) -> str:
+    async def _request(self, system: str, user: str, schema: dict[str, Any], name: str) -> str:
         response: Any = await self._client.beta.messages.create(
             model=self._model,
             max_tokens=16000,
-            system=SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": build_prompt(question, chunks)}],
-            output_config={"format": {"type": "json_schema", "schema": SCHEMA}},
+            system=system,
+            messages=[{"role": "user", "content": user}],
+            output_config={"format": {"type": "json_schema", "schema": schema}},
             # A policy decline is re-run server-side on Anthropic's recommended fallback model.
             betas=["server-side-fallback-2026-07-01"],
             fallbacks="default",

@@ -120,7 +120,8 @@ def _embedder_notices(settings: Settings, retriever: Retriever) -> list[str]:
 
 def _cloud_notice(provider: str, model: str) -> str:
     return (
-        f"Cloud generator active: each question and its retrieved passages are sent to "
+        f"Cloud generator active: each question, its retrieved passages and the recent "
+        f"conversation turns are sent to "
         f"{provider} ({model}). Set DOCBOT_GENERATOR=extractive to keep everything local."
     )
 
@@ -166,7 +167,9 @@ async def build_container(settings: Settings) -> Container:
     llm, llm_notices = _build_llm(settings, extractive)
     notices += llm_notices
     generator: Generator = llm or extractive
-    qa = QAService(repository, retriever, generator, gate, settings.min_coverage, extractive)
+    qa = QAService(
+        repository, retriever, generator, gate, settings.min_coverage, extractive, rewriter=llm
+    )
     return Container(
         settings=settings,
         engine=engine,

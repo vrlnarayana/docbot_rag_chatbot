@@ -12,5 +12,5 @@ router = APIRouter(tags=["ask"])
 async def ask(
     body: AskRequest, container: Annotated[Container, Depends(get_container)]
 ) -> AskResponse:
-    """FR-010…FR-018: answer from the indexed documents, with citations, or refuse."""
-    return await container.qa.ask(body.question, body.top_k)
+    """FR-010…FR-018, FR-070…FR-073: answer from the documents with citations, or refuse."""
+    return await container.qa.ask(body.question, body.top_k, body.history)

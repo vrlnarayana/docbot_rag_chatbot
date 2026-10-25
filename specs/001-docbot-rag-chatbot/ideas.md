@@ -9,3 +9,6 @@
 ## Retrieval and answer quality (found while building US-3, 2026-10-25)
 - **OCR drops word spaces.** RapidOCR's bundled model (Chinese/English PP-OCR) often merges English words ("Lowbeamwattage"). The samples work around this with wide word gaps, but real scans with normal spacing will index merged tokens, which weakens keyword retrieval and the answerability gate. Options: an English recognition model (needs a one-time download), or splitting merged tokens against a vocabulary.
 - **The extractive generator picks the line block with the most question words**, not the block that answers. Prose that repeats the question's terms can beat the table row with the value. An LLM generator (Ollama, OpenAI, Claude) handles this better; a cheap improvement would be to favour blocks containing numbers or units for "what is the value" questions.
+
+## Conversation (found while building FR-070, 2026-10-25)
+- **The local follow-up rule cannot substitute words.** Without an LLM, "and the rear one?" after a question about the front disc becomes "…front brake disc? and the rear one?". Retrieval finds the right document, but the extractive quote can still pick the front row. An LLM generator rewrites it properly. A small improvement would be to drop words from the previous question that have a known opposite in the follow-up (front/rear, left/right, low/high, min/max).
