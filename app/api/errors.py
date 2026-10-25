@@ -14,6 +14,7 @@ logger = logging.getLogger("docbot.errors")
 STATUS_BY_CODE = {
     "unsupported_type": 415,
     "too_large": 413,
+    "length_required": 411,
     "no_text": 422,
     "extraction_failed": 422,
     "not_found": 404,

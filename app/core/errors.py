@@ -60,3 +60,12 @@ class NoDocuments(DocBotError):
 
     def __init__(self) -> None:
         super().__init__("No documents are indexed yet. Load the sample set first.")
+
+
+class LengthRequired(DocBotError):
+    code = "length_required"
+
+    def __init__(self) -> None:
+        super().__init__(
+            "Uploads must declare their size (Content-Length header) so the limit can be checked."
+        )

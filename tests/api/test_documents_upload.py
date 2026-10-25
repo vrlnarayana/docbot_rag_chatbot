@@ -1,3 +1,4 @@
+from collections.abc import AsyncIterator
 from pathlib import Path
 
 import httpx
@@ -134,3 +135,21 @@ async def test_unsafe_filename_kept_for_display_only(client: httpx.AsyncClient) 
     assert resp.status_code == 201
     doc = UploadResponse.model_validate(resp.json()).document
     assert doc.filename == "../../etc/Ölfilter Notiz.txt"
+
+
+async def test_fr_003_upload_without_content_length_is_rejected(
+    client: httpx.AsyncClient,
+) -> None:
+    async def chunked() -> AsyncIterator[bytes]:  # httpx sends no Content-Length for this
+        yield b"--b\r\nContent-Disposition: form-data; name=\"file\"; filename=\"a.txt\"\r\n\r\n"
+        yield b"x" * 1000
+        yield b"\r\n--b--\r\n"
+
+    resp = await client.post(
+        "/documents",
+        content=chunked(),
+        headers={"content-type": "multipart/form-data; boundary=b"},
+    )
+    assert resp.status_code == 411
+    assert ErrorResponse.model_validate(resp.json()).code == "length_required"
+    assert (await client.get("/status")).json()["documents"] == 0
