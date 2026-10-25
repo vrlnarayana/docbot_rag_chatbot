@@ -1,16 +1,42 @@
 """Use cases: ingestion, question answering and evaluation (plan §7)."""
 
 import hashlib
+import re
+import time
 import uuid
 from datetime import UTC, datetime
 from pathlib import PurePath
 
 import anyio
 
+from app.core.answerability import AnswerabilityGate
 from app.core.chunking import chunk_pages
 from app.core.errors import FileTooLarge, NoTextExtracted, UnsupportedFileType
-from app.core.models import Chunk, DocType, Document
-from app.core.ports import DocumentRepository, Embedder, Extractor, FileStore, Retriever
+from app.core.models import (
+    AskResponse,
+    Chunk,
+    CitationOut,
+    DocType,
+    Document,
+    GeneratedAnswer,
+    RetrievedChunk,
+)
+from app.core.ports import (
+    DocumentRepository,
+    Embedder,
+    Extractor,
+    FileStore,
+    Generator,
+    Retriever,
+)
+
+REFUSAL = "I couldn't find this in the uploaded documents."
+EMPTY_LIBRARY = (
+    "There are no documents yet. Load the sample set (Documents page → "
+    '"Generate & load sample documents") or upload your own files.'
+)
+NO_GENERATOR = "none"
+_MARKER = re.compile(r"\s?\[(\d+)\]")
 
 _TYPES: dict[str, tuple[DocType, str]] = {
     ".pdf": ("pdf", "application/pdf"),
@@ -34,6 +60,7 @@ class IngestionService:
         chunk_overlap: int,
         max_upload_bytes: int,
         max_pdf_bytes: int | None = None,
+        gate: AnswerabilityGate | None = None,
     ) -> None:
         self._repo = repository
         self._files = file_store
@@ -44,6 +71,7 @@ class IngestionService:
         self._chunk_overlap = chunk_overlap
         self._max_bytes = max_upload_bytes
         self._max_pdf_bytes = max_pdf_bytes if max_pdf_bytes is not None else max_upload_bytes
+        self.gate = gate
 
     def check_upload(self, filename: str) -> str:
         """FR-002: return the lower-case extension, or raise if it is not supported."""
@@ -142,6 +170,104 @@ class IngestionService:
         return len(stale)
 
     async def refresh_retriever(self) -> None:
+        """Rebuild the retriever's index and the answerability statistics from the database."""
+        chunks = await self._repo.indexed_chunks()
         if self.retriever:
-            chunks = await self._repo.indexed_chunks()
             await anyio.to_thread.run_sync(self.retriever.refresh, chunks)
+        if self.gate:
+            await anyio.to_thread.run_sync(self.gate.refresh, [c.chunk.text for c in chunks])
+
+
+class QAService:
+    """FR-010…FR-018: retrieve, gate, generate, validate citations (plan §7.2)."""
+
+    def __init__(
+        self,
+        repository: DocumentRepository,
+        retriever: Retriever,
+        generator: Generator,
+        gate: AnswerabilityGate,
+        min_coverage: float,
+        fallback: Generator | None = None,
+    ) -> None:
+        self._repo = repository
+        self.retriever = retriever
+        self.generator = generator
+        self._gate = gate
+        self._min_coverage = min_coverage
+        self._fallback = fallback
+
+    async def ask(self, question: str, top_k: int) -> AskResponse:
+        start = time.perf_counter()
+
+        def respond(
+            text: str,
+            citations: list[CitationOut] | None = None,
+            generator_used: str = NO_GENERATOR,
+            fallback_reason: str | None = None,
+        ) -> AskResponse:
+            return AskResponse(
+                answer=text,
+                grounded=bool(citations),
+                citations=citations or [],
+                retriever=self.retriever.name,
+                generator_used=generator_used,
+                fallback_reason=fallback_reason,
+                latency_ms=round((time.perf_counter() - start) * 1000, 1),
+            )
+
+        _documents, chunk_count = await self._repo.counts()
+        if chunk_count == 0:
+            return respond(EMPTY_LIBRARY)
+
+        retrieved = await anyio.to_thread.run_sync(self.retriever.search, question, top_k)
+        if not retrieved or retrieved[0].score < self.retriever.min_score:
+            return respond(REFUSAL)
+        coverage = self._gate.coverage(question, [r.chunk.text for r in retrieved])
+        if coverage < self._min_coverage:
+            return respond(REFUSAL)
+
+        answer = await self.generator.generate(question, retrieved)
+        text, citations = _cite(answer, retrieved)
+        fallback_reason = answer.fallback_reason
+        if not citations and self._fallback and answer.generator_used != self._fallback.name:
+            fallback_reason = f"{answer.generator_used} answer had no valid citations"
+            answer = await self._fallback.generate(question, retrieved)
+            text, citations = _cite(answer, retrieved)
+        if not citations:
+            return respond(REFUSAL, generator_used=answer.generator_used)
+        return respond(text, citations, answer.generator_used, fallback_reason)
+
+
+def _cite(
+    answer: GeneratedAnswer, retrieved: list[RetrievedChunk]
+) -> tuple[str, list[CitationOut]]:
+    """FR-015: keep only citations to supplied chunks; renumber them by first use (FR-014)."""
+    if not answer.grounded:
+        return answer.text, []
+    valid = set(range(1, len(retrieved) + 1))
+    in_text = [int(m) for m in _MARKER.findall(answer.text)]
+    order: list[int] = []
+    for n in in_text + answer.cited:
+        if n in valid and n not in order:
+            order.append(n)
+    new_number = {old: i for i, old in enumerate(order, start=1)}
+
+    def renumber(match: re.Match[str]) -> str:
+        old = int(match.group(1))
+        return f" [{new_number[old]}]" if old in new_number else ""
+
+    text = _MARKER.sub(renumber, answer.text).strip()
+    citations = [
+        CitationOut(
+            n=new_number[old],
+            chunk_id=retrieved[old - 1].chunk.id,
+            document_id=retrieved[old - 1].chunk.document_id,
+            filename=retrieved[old - 1].filename,
+            page=retrieved[old - 1].chunk.page,
+            score=retrieved[old - 1].score,
+            passage=retrieved[old - 1].chunk.text,
+        )
+        for old in order
+    ]
+    return text, citations
