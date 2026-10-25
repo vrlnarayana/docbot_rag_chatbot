@@ -11,8 +11,8 @@ Every functional requirement maps to the tasks that implement it, the source fil
 | FR-005 | | | | gap |
 | FR-006 | | | | gap |
 | FR-007 | | | | gap |
-| FR-008 | | | | gap |
-| FR-009 | | | | gap |
+| FR-008 | T007 | `app/adapters/db.py` | `tests/unit/test_db.py::test_fr_008_lookup_by_sha256` | partial |
+| FR-009 | T007 | `app/adapters/db.py` | `tests/unit/test_db.py::test_fr_009_failed_insert_stores_nothing` | partial |
 | FR-010 | T004 | `app/core/models.py` | `tests/unit/test_models.py::test_fr_010_ask_request_rejects_bad_question_length`, `tests/unit/test_models.py::test_fr_010_ask_request_top_k_bounds`, `tests/unit/test_settings.py::test_fr_010_top_k_bounds` | partial |
 | FR-011 | | | | gap |
 | FR-012 | | | | gap |
@@ -22,9 +22,9 @@ Every functional requirement maps to the tasks that implement it, the source fil
 | FR-016 | | | | gap |
 | FR-017 | | | | gap |
 | FR-018 | | | | gap |
-| FR-020 | T004 | `app/core/models.py` | `tests/unit/test_models.py::test_fr_020_document_out_has_listing_fields_and_no_internal_ones` | partial |
-| FR-021 | T004 | `app/core/models.py` | `tests/unit/test_models.py::test_fr_021_chunk_out_fields` | partial |
-| FR-022 | | | | gap |
+| FR-020 | T004, T007 | `app/core/models.py`, `app/adapters/db.py` | `tests/unit/test_models.py::test_fr_020_document_out_has_listing_fields_and_no_internal_ones`, `tests/unit/test_db.py::test_fr_020_add_get_and_list` | partial |
+| FR-021 | T004, T007 | `app/core/models.py`, `app/adapters/db.py` | `tests/unit/test_models.py::test_fr_021_chunk_out_fields`, `tests/unit/test_db.py::test_fr_021_chunks_in_page_order` | partial |
+| FR-022 | T007 | `app/adapters/db.py` | `tests/unit/test_db.py::test_fr_022_delete_removes_document_and_chunks` | partial |
 | FR-023 | | | | gap |
 | FR-030 | | | | gap |
 | FR-031 | | | | gap |
