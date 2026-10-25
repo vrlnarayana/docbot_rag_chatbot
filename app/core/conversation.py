@@ -1,0 +1,61 @@
+"""Conversation helpers (FR-070, FR-071): small talk and turning follow-ups into questions."""
+
+import re
+from typing import Literal
+
+SmallTalk = Literal["greeting", "thanks", "goodbye", "help"]
+
+_PHRASES: dict[SmallTalk, set[str]] = {
+    "greeting": {
+        "hi", "hello", "hey", "hiya", "howdy", "greetings", "hi there", "hello there",
+        "hey there", "good morning", "good afternoon", "good evening", "how are you",
+        "hi how are you", "hello how are you", "hey how are you",
+    },
+    "thanks": {
+        "thanks", "thank you", "thanks a lot", "thank you very much", "thanks so much", "thx",
+        "ty", "cheers", "ok thanks", "okay thanks", "great thanks", "perfect thanks",
+        "awesome thanks", "much appreciated", "thank you so much",
+    },
+    "goodbye": {"bye", "goodbye", "bye bye", "see you", "see ya", "cya", "good night"},
+    "help": {
+        "help", "what can you do", "who are you", "what are you", "how do you work",
+        "how can you help", "how can you help me", "what do you do", "what is docbot",
+        "what can i ask", "what can i ask you",
+    },
+}
+
+_REPLIES: dict[SmallTalk, str] = {
+    "greeting": (
+        "Hi! I'm DocBot. Ask me anything about the documents in your library, and I'll answer "
+        "with the file and page each fact comes from."
+    ),
+    "thanks": "You're welcome! Ask me anything else about your documents.",
+    "goodbye": "Goodbye! Your documents will be here when you come back.",
+    "help": (
+        "I answer questions about the documents in your library: PDFs (including scans), "
+        "images and text files. Every answer cites the file and page it came from, and if the "
+        "documents don't say, I tell you instead of guessing. You can ask follow-up questions "
+        "too. Try \"What is the minimum thickness of the front brake disc?\" after loading the "
+        "sample set."
+    ),
+}
+
+
+def _normalise(message: str) -> str:
+    words = re.sub(r"[^a-z0-9' ]+", " ", message.lower()).split()
+    if words and words[-1] == "docbot":  # "hi docbot", "thanks, DocBot!"
+        words = words[:-1]
+    return " ".join(words)
+
+
+def small_talk_kind(message: str) -> SmallTalk | None:
+    """The kind of small talk when the whole message is small talk, otherwise None."""
+    text = _normalise(message)
+    for kind, phrases in _PHRASES.items():
+        if text in phrases:
+            return kind
+    return None
+
+
+def small_talk_reply(kind: SmallTalk) -> str:
+    return _REPLIES[kind]

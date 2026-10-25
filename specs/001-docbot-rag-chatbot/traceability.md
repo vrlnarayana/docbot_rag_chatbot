@@ -47,7 +47,7 @@ Every functional requirement maps to the tasks that implement it, the source fil
 | FR-063 | T032 | `ui/pages/1_Documents.py` | `tests/ui/test_documents_page.py::test_fr_063_delete_asks_for_confirmation_first` | tested |
 | FR-064 | T030, T031, T034 | `ui/api_client.py`, `ui/Home.py`, `ui/pages/1_Documents.py`, `ui/pages/2_Evaluate.py`, `ui/pages/3_Status.py` | `tests/unit/test_api_client.py::test_fr_064_unreachable_api_raises_api_unavailable`, `tests/ui/test_chat_page.py::test_fr_064_api_down_shows_banner_with_url`, `tests/ui/test_documents_page.py::test_fr_064_api_down`, `tests/ui/test_evaluate_page.py::test_fr_064_api_down`, `tests/ui/test_status_page.py::test_fr_064_api_down` | tested |
 | FR-070 | T046 | `app/core/models.py` | `tests/unit/test_models.py::test_fr_070_fr_071_answer_reports_standalone_question_and_small_talk` | partial |
-| FR-071 | | | | gap |
+| FR-071 | T047 | `app/core/conversation.py`, `app/core/services.py` | `tests/unit/test_conversation.py::test_fr_071_small_talk_is_recognised`, `tests/unit/test_conversation.py::test_fr_071_real_questions_are_not_small_talk`, `tests/unit/test_conversation.py::test_fr_071_replies_are_friendly_and_point_to_documents`, `tests/unit/test_conversation.py::test_fr_071_small_talk_skips_retrieval_and_generation` | tested |
 | FR-072 | | | | gap |
 | FR-073 | T046 | `app/core/models.py` | `tests/unit/test_models.py::test_fr_073_history_is_optional_and_accepts_up_to_six_turns`, `tests/unit/test_models.py::test_fr_073_invalid_history_is_rejected` | partial |
 

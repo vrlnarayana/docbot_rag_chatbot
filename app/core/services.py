@@ -11,6 +11,7 @@ import anyio
 
 from app.core.answerability import AnswerabilityGate
 from app.core.chunking import chunk_pages
+from app.core.conversation import small_talk_kind, small_talk_reply
 from app.core.errors import (
     DocumentNotFound,
     FileTooLarge,
@@ -20,6 +21,7 @@ from app.core.errors import (
 )
 from app.core.models import (
     AskResponse,
+    ChatTurn,
     Chunk,
     CitationOut,
     DocType,
@@ -216,7 +218,9 @@ class QAService:
         self._min_coverage = min_coverage
         self._fallback = fallback
 
-    async def ask(self, question: str, top_k: int) -> AskResponse:
+    async def ask(
+        self, question: str, top_k: int, history: list[ChatTurn] | None = None
+    ) -> AskResponse:
         start = time.perf_counter()
 
         def respond(
@@ -224,6 +228,7 @@ class QAService:
             citations: list[CitationOut] | None = None,
             generator_used: str = NO_GENERATOR,
             fallback_reason: str | None = None,
+            small_talk: bool = False,
         ) -> AskResponse:
             return AskResponse(
                 answer=text,
@@ -233,7 +238,12 @@ class QAService:
                 generator_used=generator_used,
                 fallback_reason=fallback_reason,
                 latency_ms=round((time.perf_counter() - start) * 1000, 1),
+                small_talk=small_talk,
             )
+
+        kind = small_talk_kind(question)
+        if kind:  # FR-071: no retrieval, no LLM
+            return respond(small_talk_reply(kind), small_talk=True)
 
         _documents, chunk_count = await self._repo.counts()
         if chunk_count == 0:
