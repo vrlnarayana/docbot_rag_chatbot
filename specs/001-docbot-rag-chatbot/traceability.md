@@ -53,3 +53,15 @@ Every functional requirement maps to the tasks that implement it, the source fil
 | NFR-006 no paths or stack traces in responses | T009 | `app/api/errors.py` | `tests/api/test_health_status.py::test_nfr_006_unexpected_errors_hide_details`, `::test_domain_errors_become_error_response`, `::test_validation_errors_use_error_shape` |
 | Image decoding limited to PNG/JPEG and bounded size (security review) | T012 | `app/adapters/extractors.py` | `tests/unit/test_extract_safety.py` |
 | Reset script refuses root, home, project and non-DocBot folders | T027 | `scripts/reset_demo.py` | `tests/unit/test_reset_demo.py::test_reset_refuses_dangerous_folders` |
+
+## Success criteria
+
+| SC | Tasks | Evidence |
+|---|---|---|
+| SC-001 vector hit rate @ 4 ≥ 80 % | T017, T029 | Manual run on the sample corpus, 2026-10-25: 100 %. Not automated: the vector model is a download, and tests must not use the network (Constitution V.2). |
+| SC-002 answer accuracy ≥ 80 % (extractive) | T019, T028, T035 | `tests/e2e/test_sample_corpus.py::test_sc_002_answer_accuracy_on_answerable_questions`, `tests/api/test_eval_api.py::test_fr_040_fr_041_sample_corpus_evaluation` |
+| SC-003 all 3 out-of-scope questions refused | T018, T020, T035 | `tests/e2e/test_sample_corpus.py::test_sc_003_all_out_of_scope_questions_are_refused` |
+| SC-004 every non-refused answer cites a real chunk | T020, T035 | `tests/e2e/test_sample_corpus.py::test_sc_004_every_answer_cites_a_real_chunk` |
+| SC-005 table, scanned-PDF and image questions correct | T013, T023, T035 | `tests/e2e/test_sample_corpus.py::test_sc_005_table_scan_and_image_questions` |
+| SC-006 every FR tested, no gaps | T037 | This file |
+| SC-007 newcomer to cited answer in < 10 min | T036 | README quick-start |
