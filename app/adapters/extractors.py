@@ -145,7 +145,7 @@ class PdfExtractor:
                 scale = min(
                     _OCR_DPI / 72,
                     MAX_IMAGE_SIDE / max(width_pt, height_pt),
-                    math.sqrt(MAX_IMAGE_PIXELS / (width_pt * height_pt)),
+                    0.999 * math.sqrt(MAX_IMAGE_PIXELS / (width_pt * height_pt)),  # pdfium rounds
                 )
                 image: Image.Image = page.render(scale=scale).to_pil()
             finally:
