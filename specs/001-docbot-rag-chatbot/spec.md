@@ -30,9 +30,10 @@ This first version runs entirely on a laptop with no cloud services, so learners
 - A generator for a synthetic sample corpus and a golden question set.
 - An evaluation run that scores retrieval and answers against the golden set.
 - A Streamlit UI that talks only to the FastAPI service.
+- Optional cloud generators (OpenAI, Anthropic Claude) using the user's own API key, off by default.
 
 **Out of scope (for this spec)**
-- Any Azure or other cloud service (SPEC-002).
+- Azure services, and any cloud service other than the optional OpenAI and Anthropic generators (SPEC-002).
 - Login, user accounts, multi-tenant access control.
 - Word, Excel, PowerPoint, CAD or email files.
 - Understanding diagrams or photos beyond the text OCR can read from them.
@@ -147,6 +148,7 @@ Requirements use EARS notation. Each one gets at least one test named after it (
 - **FR-016** IF LLM output fails schema validation twice, or no valid citations remain, THEN THE SYSTEM SHALL fall back to the extractive generator and report `generator_used = extractive` with a `fallback_reason`.
 - **FR-017** IF the selected generator is unavailable (not running, timed out after 30 s, or erroring), THEN THE SYSTEM SHALL retry transient errors up to 2 times with exponential backoff and jitter, and then fall back as in FR-016.
 - **FR-018** WHEN no documents are indexed, THE SYSTEM SHALL return a message suggesting the sample corpus be loaded, and SHALL NOT run retrieval.
+- **FR-019** WHERE the generator is set to **openai** or **anthropic**, THE SYSTEM SHALL produce answers through that provider's API with the user's API key, applying the same strict schema, citation validation, retries and extractive fallback as FR-015 to FR-017.
 
 ### Document management
 - **FR-020** THE SYSTEM SHALL list all documents with id, file name, type, size, page count, chunk count, OCR page count, status and upload time.
@@ -167,6 +169,8 @@ Requirements use EARS notation. Each one gets at least one test named after it (
 - **FR-050** THE SYSTEM SHALL read all settings from environment variables or a `.env` file, with the defaults listed in the plan.
 - **FR-051** WHEN started, THE SYSTEM SHALL report on a status endpoint the active retriever, generator, embedding model, document and chunk counts, and any fallback in force.
 - **FR-052** IF a generator or retriever name that is not implemented is configured (for example `azure_openai`), THEN THE SYSTEM SHALL fail at startup with a message naming the valid options.
+- **FR-053** IF a cloud generator is selected without its API key, THEN THE SYSTEM SHALL fail at startup with a message naming the environment variable to set.
+- **FR-054** WHILE a cloud generator is active, THE SYSTEM SHALL say so on the status endpoint and in the UI, naming the provider that receives the question and the retrieved passages.
 
 ### User interface
 - **FR-060** THE SYSTEM SHALL provide a Streamlit UI with four pages: **Chat**, **Documents**, **Evaluate** and **Status**.
@@ -176,7 +180,7 @@ Requirements use EARS notation. Each one gets at least one test named after it (
 - **FR-064** WHEN the API is not reachable, THE UI SHALL show a clear banner with the expected API URL instead of a stack trace.
 
 ## 5. Non-functional requirements
-- **NFR-001 Local-first.** After installation and the first embedding-model download, the app runs with no internet. No document text leaves the machine.
+- **NFR-001 Local-first.** After installation and the first embedding-model download, the app runs with no internet. No document text leaves the machine unless the user selects a cloud generator; then only the question and the retrieved passages are sent to that provider.
 - **NFR-002 Performance.** On a typical laptop CPU, the full sample corpus is indexed in under 60 s, and an extractive answer returns in under 3 s.
 - **NFR-003 Simple to run.** One install command, then two commands to start (API and UI). No Docker and no database server.
 - **NFR-004 Cross-platform.** Works on Windows, macOS and Linux with Python 3.11–3.13.
@@ -243,4 +247,5 @@ Company **Demo Motors**, motorcycle model **Velo 125**. The generator must put t
 - **Q:** Is chat history sent with each question? → **A:** No. Each question is answered on its own (see Scope).
 - **Q:** Should PDFs have their own size limit? → **A:** Yes. PDFs are capped at **1 MB** by default (`DOCBOT_MAX_PDF_MB`), because every page without a text layer is rendered and OCR'd, so a large PDF can tie up the CPU for a long time. Other types keep the 20 MB limit. (Amends FR-003.)
 - **Q:** What is `generator_used` when DocBot refuses or the library is empty and no generator runs? → **A:** `"none"`. It reports truthfully that no generator produced the text (FR-012, FR-018).
+- **Q:** Can users bring their own OpenAI or Claude key? → **A:** Yes (constitution 1.1.0). `DOCBOT_GENERATOR=openai` or `anthropic`, with `DOCBOT_OPENAI_API_KEY` / `OPENAI_API_KEY` or `DOCBOT_ANTHROPIC_API_KEY` / `ANTHROPIC_API_KEY`. Off by default; the status page and UI show when a cloud provider is in use (FR-019, FR-053, FR-054).
 - **Q:** Can learners use real Hero documents? → **A:** Not in the demo. In their own department lab they may upload non-confidential documents through the same UI.

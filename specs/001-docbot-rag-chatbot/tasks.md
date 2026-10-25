@@ -41,6 +41,12 @@ Conventions: `[P]` = can run in parallel with the other `[P]` tasks in the same 
 - [x] T021 [FR-015, FR-016, FR-017] `OllamaGenerator`: `httpx` + `tenacity` (2 retries on connection errors, timeouts and 5xx with exponential jitter; no retry on 4xx), `LlmAnswer` strict parsing, fallback to extractive with `fallback_reason`
 - [x] T022 [FR-010…FR-018] `POST /ask` with `AskRequest` validation (question 3–1000 chars, `top_k` 1–10) and `AskResponse`
 
+## Phase 4b — Optional cloud generators (constitution 1.1.0)
+
+- [ ] T039 [FR-050, FR-053] Settings: `openai` / `anthropic` generator options, API keys as secrets (also read from `OPENAI_API_KEY` / `ANTHROPIC_API_KEY`), model names; missing key fails startup naming the variable
+- [ ] T040 [FR-019, FR-015, FR-016, FR-017] `generator_cloud.py`: `OpenAIGenerator` and `AnthropicGenerator` on the official SDKs, structured output, strict `LlmAnswer` parsing, fallback to extractive on invalid output twice, API errors or refusals
+- [ ] T041 [FR-019, FR-054] Wiring in `deps.py`, client cleanup on shutdown, `/status` `notices` naming the cloud provider; keys never appear in any response
+
 ## Phase 5 — US-3 Generate and load the sample corpus (P2)
 
 - [ ] T023 [FR-030, FR-032] `app/adapters/samples.py`: deterministic generator for the 8 files of spec §8 and `eval/golden.yaml` (12 cases)

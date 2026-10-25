@@ -62,6 +62,7 @@ docbot/
 │   │   ├── retriever_bm25.py      # Bm25Retriever
 │   │   ├── generator_extractive.py
 │   │   ├── generator_ollama.py    # httpx + tenacity; strict-schema parsing
+│   │   ├── generator_cloud.py     # OpenAI and Anthropic generators (official SDKs); strict-schema parsing
 │   │   └── samples.py             # deterministic sample corpus + golden.yaml writer
 │   ├── api/
 │   │   ├── main.py                # app factory, lifespan, exception handlers, logging middleware
@@ -102,13 +103,17 @@ docbot/
 | `DOCBOT_MIN_SCORE_VECTOR` | `0.50` | Cosine; tune using the evaluation page |
 | `DOCBOT_MIN_SCORE_KEYWORD` | `1.0` | BM25 |
 | `DOCBOT_MIN_COVERAGE` | `0.55` | Answerability gate (§7.2) |
-| `DOCBOT_GENERATOR` | `extractive` | `extractive` \| `ollama` (FR-013, FR-052) |
+| `DOCBOT_GENERATOR` | `extractive` | `extractive` \| `ollama` \| `openai` \| `anthropic` (FR-013, FR-019, FR-052) |
 | `DOCBOT_OLLAMA_URL` | `http://localhost:11434` | |
 | `DOCBOT_OLLAMA_MODEL` | `llama3.2:3b` | Any instruct model pulled into Ollama |
 | `DOCBOT_LLM_TIMEOUT_S` | `30` | FR-017 |
+| `DOCBOT_OPENAI_API_KEY` (or `OPENAI_API_KEY`) | — | Required when `GENERATOR=openai` (FR-053) |
+| `DOCBOT_OPENAI_MODEL` | `gpt-5-mini` | Any chat model the key can use that supports structured outputs |
+| `DOCBOT_ANTHROPIC_API_KEY` (or `ANTHROPIC_API_KEY`) | — | Required when `GENERATOR=anthropic` (FR-053) |
+| `DOCBOT_ANTHROPIC_MODEL` | `claude-opus-5-5` | |
 | `DOCBOT_API_URL` | `http://localhost:8000` | Used by the UI |
 
-Any value outside the allowed options (e.g. `DOCBOT_GENERATOR=azure_openai`) stops startup with: `Unknown generator 'azure_openai'. Valid options: extractive, ollama. (Azure arrives in SPEC-002.)`
+Any value outside the allowed options (e.g. `DOCBOT_GENERATOR=azure_openai`) stops startup with: `Unknown generator 'azure_openai'. Valid options: extractive, ollama, openai, anthropic. (Azure arrives in SPEC-002.)`
 
 ## 5. Data model (SQLite)
 
@@ -206,6 +211,8 @@ Split each page's text into chunks of at most `CHUNK_SIZE` characters with `CHUN
 ### 7.4 Generators
 - **Extractive** (default): split each retrieved chunk into lines (and long lines into sentences). Score every window of up to 3 consecutive lines by IDF-weighted overlap with the question terms; ties go to the higher-ranked chunk, then the earlier window. Return the best window followed by its citation marker. A window is used so that a table header and its value row come back together, e.g. `Position | Disc diameter | Minimum thickness` / `Front | 276 mm | 3.5 mm [1]`. Deterministic, with no network access.
 - **Ollama**: `POST {OLLAMA_URL}/api/chat` with `stream: false`, `options.temperature: 0`, and `format` set to the JSON schema of `LlmAnswer {answer: str, citations: list[int], grounded: bool}` (strict, `extra="forbid"`). The system prompt says: answer only from the numbered passages; cite passages as `[n]`; if the passages do not contain the answer, set `grounded` to false. Parse with `LlmAnswer.model_validate_json(..., strict=True)`. Retry transient errors (connection errors, timeouts, 5xx) up to 2 times with `wait_exponential_jitter`; never retry 4xx. If validation fails twice, or no valid citations remain, fall back to extractive (FR-016, FR-017).
+
+- **OpenAI / Anthropic** (optional, FR-019): same system prompt, numbered passages and `LlmAnswer` schema as Ollama, requested as structured output (OpenAI `response_format` json_schema with `strict: true`; Anthropic `output_config.format` json_schema). The SDKs' own retries cover transient errors (2 retries, exponential backoff with jitter) and the client timeout is `DOCBOT_LLM_TIMEOUT_S`. Parse with `LlmAnswer.model_validate_json(..., strict=True)`; invalid output twice, an API error, or a Claude `refusal` stop reason falls back to extractive with a `fallback_reason`. Claude requests opt into server-side refusal fallback (`fallbacks: "default"`).
 
 ## 8. Sample generator (`app/adapters/samples.py`)
 - Pure function `generate(target_dir) -> list[Path]`, deterministic: fixed text, fixed image sizes, no timestamps. PDF metadata dates are fixed via ReportLab's `invariant=1`.

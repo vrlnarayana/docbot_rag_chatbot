@@ -2,7 +2,7 @@
 
 These rules apply to every spec, plan, task and line of code in this repository. If a plan or task conflicts with them, the constitution wins. Change it only by an explicit, versioned amendment at the bottom of this file.
 
-**Version** 1.0.0 · **Ratified** 2026-10-25
+**Version** 1.1.0 · **Ratified** 2026-10-25 · **Last amended** 2026-10-25
 
 ---
 
@@ -28,6 +28,7 @@ These rules apply to every spec, plan, task and line of code in this repository.
 | Embeddings | `fastembed` with `BAAI/bge-small-en-v1.5` (ONNX; no PyTorch) |
 | Keyword search | `rank-bm25` |
 | Local LLM (optional) | Ollama over its HTTP API, called with `httpx` |
+| Cloud LLMs (optional, opt-in) | `openai` SDK for OpenAI, `anthropic` SDK for Claude; each used only when selected and given the user's own API key |
 | Retries | `tenacity` |
 | Sample documents | `reportlab` (PDF), `Pillow` (images and the scanned PDF) |
 | UI | Streamlit, calling the API with `httpx` |
@@ -58,7 +59,7 @@ The ten-point harness is mandatory:
 10. `app/core` imports nothing from `fastapi`, `sqlalchemy`, `sqlite3`, `httpx`, `fastembed`, `rapidocr_onnxruntime`, `pypdf` or `pypdfium2`.
 
 ## Article IV — Local-first and data safety
-1. No cloud services in SPEC-001. The only network calls allowed at runtime are to Ollama on `localhost` (optional) and the one-time embedding-model download.
+1. No cloud services by default. The only network calls allowed at runtime are to Ollama on `localhost` (optional), the one-time embedding-model download, and the API of a cloud generator (OpenAI or Anthropic) **only** when the user explicitly selects it and supplies their own API key. A cloud generator receives only the question and the retrieved passages; API keys are never logged or returned by the API.
 2. Sample data is synthetic: company "Demo Motors", model "Velo 125". No real company names, people or documents.
 3. Uploaded files are stored under generated names inside the configured storage folder. User-supplied file names are never used as paths.
 4. API responses never include raw prompts, absolute file paths or stack traces.
@@ -82,4 +83,9 @@ The ten-point harness is mandatory:
 ---
 
 ## Amendments
-_None yet._
+
+### 1.1.0 — 2026-10-25 — Optional cloud generators
+- **Why:** Users who have an OpenAI or Anthropic API key want better-written answers than the extractive generator gives, without installing Ollama.
+- **Article II:** adds the `openai` and `anthropic` SDKs, for the optional cloud generators only.
+- **Article IV.1:** a cloud generator may be called when the user selects it and supplies their own key. The default configuration stays fully local.
+- **Unchanged:** Article III (the core stays pure; the cloud generators are adapters behind the `Generator` port, with strict parsing, retries, timeouts and the extractive fallback), and Article IV.4 (no prompts, paths or keys in API responses). Azure remains SPEC-002.
