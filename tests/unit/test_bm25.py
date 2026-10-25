@@ -21,7 +21,7 @@ CORPUS = [
 
 def test_tokenize_drops_question_words_and_plurals() -> None:
     assert tokenize("How many pistons does the front brake caliper have?") == [
-        "piston", "front", "brake", "caliper", "have",
+        "piston", "front", "brake", "caliper",
     ]
     assert tokenize("What is the DOT 4 fluid?") == ["dot", "4", "fluid"]
 

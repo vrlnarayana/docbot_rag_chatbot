@@ -27,9 +27,9 @@ Every functional requirement maps to the tasks that implement it, the source fil
 | FR-021 | T004, T007 | `app/core/models.py`, `app/adapters/db.py` | `tests/unit/test_models.py::test_fr_021_chunk_out_fields`, `tests/unit/test_db.py::test_fr_021_chunks_in_page_order` | partial |
 | FR-022 | T007, T008 | `app/adapters/db.py`, `app/adapters/file_store.py` | `tests/unit/test_db.py::test_fr_022_delete_removes_document_and_chunks`, `tests/unit/test_file_store.py::test_fr_022_delete_removes_file` | partial |
 | FR-023 | | | | gap |
-| FR-030 | | | | gap |
+| FR-030 | T023 | `app/adapters/samples.py` | `tests/unit/test_samples.py::test_fr_030_generates_the_eight_files_and_golden_set`, `tests/unit/test_samples.py::test_fr_030_output_is_deterministic` | partial |
 | FR-031 | | | | gap |
-| FR-032 | | | | gap |
+| FR-032 | T023 | `app/adapters/samples.py` | `tests/unit/test_samples.py::test_fr_032_content_is_fictional_and_avoids_the_refusal_topics` | tested |
 | FR-040 | | | | gap |
 | FR-041 | | | | gap |
 | FR-050 | T001, T002, T039 | `pyproject.toml`, `.env.example`, `app/settings.py` | `tests/unit/test_settings.py::test_fr_050_defaults_match_plan`, `tests/unit/test_settings.py::test_fr_050_reads_env_and_dotenv`, `tests/unit/test_settings.py::test_fr_019_provider_standard_key_names_are_accepted` | tested |

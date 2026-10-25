@@ -14,7 +14,7 @@ STOP_WORDS = frozenset(
     in into is it its may might must of on or our shall should so than that the their them
     then there these they this those to under up very was we were will with would you your
     what which who whom whose when where why how many much
-    i me my please tell give show find
+    i me my please tell give show find have having
     """.split()
 )
 
