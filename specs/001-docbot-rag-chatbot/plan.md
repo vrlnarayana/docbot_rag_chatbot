@@ -93,7 +93,8 @@ docbot/
 |---|---|---|
 | `DOCBOT_DATA_DIR` | `./data` | Holds `docbot.db`, `files/` and `models/` |
 | `DOCBOT_SAMPLE_DIR` | `./sample_data` | |
-| `DOCBOT_MAX_UPLOAD_MB` | `20` | FR-003 |
+| `DOCBOT_MAX_UPLOAD_MB` | `20` | FR-003, all types except PDF |
+| `DOCBOT_MAX_PDF_MB` | `1` | FR-003, PDF only |
 | `DOCBOT_CHUNK_SIZE` / `DOCBOT_CHUNK_OVERLAP` | `800` / `100` | FR-007 |
 | `DOCBOT_RETRIEVER` | `vector` | `vector` \| `keyword` (FR-011, FR-052) |
 | `DOCBOT_EMBED_MODEL` | `BAAI/bge-small-en-v1.5` | Cached in `data/models` |
@@ -179,7 +180,7 @@ EvalSummary     cases, hit_rate_at_k, answer_accuracy, refusal_accuracy, retriev
 ## 7. Core algorithms
 
 ### 7.1 Ingestion (`IngestionService.ingest`)
-1. Check the size limit before reading the whole stream (FR-003), then the extension (FR-002).
+1. Check the size limit before reading the whole stream (FR-003), then the extension (FR-002). PDFs have their own, lower limit (`MAX_PDF_MB`), enforced while the file is read.
 2. Compute SHA-256; if a document with that hash exists, return it with `duplicate=True` (FR-008).
 3. Extract pages in a worker thread:
    - **PDF**: for each page, `pypdf` text with `extraction_mode="layout"` so table rows stay on one line; then collapse runs of 2+ spaces inside a line to ` | ` (e.g. `Front | 276 mm | 3.5 mm`). If under 20 characters (after stripping), render with `pypdfium2` at 200 DPI and OCR it (FR-004).

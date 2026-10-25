@@ -129,7 +129,7 @@ Requirements use EARS notation. Each one gets at least one test named after it (
 ### Ingestion
 - **FR-001** WHEN a file with extension `.pdf`, `.png`, `.jpg`, `.jpeg`, `.txt` or `.md` is uploaded, THE SYSTEM SHALL extract its text page by page and store it as an indexed document.
 - **FR-002** WHEN a file of any other type is uploaded, THE SYSTEM SHALL reject it with HTTP 415 and list the supported types.
-- **FR-003** WHEN an uploaded file is larger than the configured limit (default 20 MB), THE SYSTEM SHALL reject it with HTTP 413 without storing it.
+- **FR-003** WHEN an uploaded file is larger than the configured limit for its type (PDF: default 1 MB; other types: default 20 MB), THE SYSTEM SHALL reject it with HTTP 413 without storing it.
 - **FR-004** WHEN a PDF page has fewer than 20 characters of extractable text, THE SYSTEM SHALL render that page to an image, run OCR on it, and mark its chunks `source = ocr`.
 - **FR-005** WHEN an image is uploaded, THE SYSTEM SHALL run OCR on it and store the result as page 1 with `source = ocr`.
 - **FR-006** WHEN a `.txt` or `.md` file is uploaded, THE SYSTEM SHALL treat the whole file as page 1, decoding it as UTF-8 and falling back to Latin-1.
@@ -241,4 +241,5 @@ Company **Demo Motors**, motorcycle model **Velo 125**. The generator must put t
 - **Q:** How are scanned pages detected? → **A:** A PDF page with fewer than 20 characters of extractable text is treated as scanned (FR-004).
 - **Q:** Should ingestion be a background job? → **A:** No. The upload request waits for indexing to finish, which keeps the demo simple. CPU-heavy steps (OCR, embedding) run in a worker thread so the API stays responsive.
 - **Q:** Is chat history sent with each question? → **A:** No. Each question is answered on its own (see Scope).
+- **Q:** Should PDFs have their own size limit? → **A:** Yes. PDFs are capped at **1 MB** by default (`DOCBOT_MAX_PDF_MB`), because every page without a text layer is rendered and OCR'd, so a large PDF can tie up the CPU for a long time. Other types keep the 20 MB limit. (Amends FR-003.)
 - **Q:** Can learners use real Hero documents? → **A:** Not in the demo. In their own department lab they may upload non-confidential documents through the same UI.
