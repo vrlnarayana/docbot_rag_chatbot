@@ -39,12 +39,13 @@ Copy `.env.example` to `.env` and restart the API after a change. The most usefu
 | Setting | Default | What it does |
 |---|---|---|
 | `DOCBOT_RETRIEVER` | `vector` | `keyword` uses BM25 and needs no model download |
+| `DOCBOT_EMBEDDER` | `fastembed` | `openai` embeds with `text-embedding-3-small` (cloud, your OpenAI key); consider `DOCBOT_MIN_SCORE_VECTOR=0.45` with it |
 | `DOCBOT_GENERATOR` | `extractive` | `ollama` (local LLM), `openai` or `anthropic` (cloud, your own key) |
 | `DOCBOT_OPENAI_API_KEY` / `DOCBOT_ANTHROPIC_API_KEY` | — | Required for the cloud generators; `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` also work |
 | `DOCBOT_MIN_COVERAGE` | `0.55` | Raise it if out-of-scope questions get answered |
 | `DOCBOT_MAX_PDF_MB` / `DOCBOT_MAX_UPLOAD_MB` | `1` / `20` | Upload limits |
 
-With `openai` or `anthropic`, each question and the passages retrieved for it are sent to that provider; the Status page and the chat sidebar say so. Every other setting keeps your documents on this machine. An unknown value (for example `DOCBOT_GENERATOR=azure_openai`) stops the API at startup with a message listing the valid options.
+With `openai` or `anthropic` as the generator, each question and the passages retrieved for it are sent to that provider. With `DOCBOT_EMBEDDER=openai`, the text of every indexed document and each question is sent to OpenAI. The Status page and the chat sidebar say so. Every other setting keeps your documents on this machine. An unknown value (for example `DOCBOT_GENERATOR=azure_openai`) stops the API at startup with a message listing the valid options.
 
 ## Development
 

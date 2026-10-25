@@ -103,7 +103,7 @@ docbot/
 | `DOCBOT_EMBED_MODEL` | `BAAI/bge-small-en-v1.5` | fastembed model; cached in `data/models` |
 | `DOCBOT_OPENAI_EMBED_MODEL` | `text-embedding-3-small` | Used when `EMBEDDER=openai`; needs the OpenAI key (FR-053) |
 | `DOCBOT_TOP_K` | `4` | Allowed 1–10 |
-| `DOCBOT_MIN_SCORE_VECTOR` | `0.50` | Cosine; tune using the evaluation page |
+| `DOCBOT_MIN_SCORE_VECTOR` | `0.50` | Cosine; tune using the evaluation page. Measured on the sample set (2026-10-25): with `text-embedding-3-small`, answerable questions score 0.52–0.79 and out-of-scope ones 0.27–0.51; 0.50 and 0.45 both give 100 % on the golden set. Use 0.45 for more headroom on your own documents. |
 | `DOCBOT_MIN_SCORE_KEYWORD` | `1.0` | BM25 |
 | `DOCBOT_MIN_COVERAGE` | `0.55` | Answerability gate (§7.2) |
 | `DOCBOT_GENERATOR` | `extractive` | `extractive` \| `ollama` \| `openai` \| `anthropic` (FR-013, FR-019, FR-052) |
