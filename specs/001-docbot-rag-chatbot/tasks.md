@@ -18,7 +18,7 @@ Conventions: `[P]` = can run in parallel with the other `[P]` tasks in the same 
 - [x] T005 [P] [NFR-005] `app/core/ports.py` (Protocols: `DocumentRepository`, `FileStore`, `Extractor`, `Embedder`, `Retriever`, `Generator`) and `app/core/errors.py` (`UnsupportedFileType`, `FileTooLarge`, `NoTextExtracted`, `DocumentNotFound`, `ExtractionFailed`)
 - [x] T006 [P] Architecture test: `app/core` imports none of the banned modules (Constitution III.10)
 - [x] T007 [FR-020, FR-021, FR-022] `app/adapters/db.py`: async SQLAlchemy engine (`aiosqlite`, `PRAGMA foreign_keys=ON`), `documents` / `chunks` tables from plan §5, `SqliteDocumentRepository` (add with chunks in one transaction, get, get by hash, list, chunks in page order, delete one, counts, all chunks)
-- [ ] T008 [P] [FR-022] `app/adapters/file_store.py`: `LocalFileStore` saving under `<uuid>.<ext>` inside `data/files/`, never using the user file name as a path; delete by stored name (Constitution IV.3)
+- [x] T008 [P] [FR-022] `app/adapters/file_store.py`: `LocalFileStore` saving under `<uuid>.<ext>` inside `data/files/`, never using the user file name as a path; delete by stored name (Constitution IV.3)
 - [ ] T009 [FR-051, FR-052, NFR-006] `app/api/main.py` app factory + lifespan, `app/api/deps.py` (adapters built once from settings), domain-error → `ErrorResponse` handlers (no stack traces), `GET /health`, `GET /status`; `tests/conftest.py` with tmp data dir, keyword retriever and `FakeGenerator`
 
 ## Phase 3 — US-1 Upload documents (P1)

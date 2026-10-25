@@ -24,7 +24,7 @@ Every functional requirement maps to the tasks that implement it, the source fil
 | FR-018 | | | | gap |
 | FR-020 | T004, T007 | `app/core/models.py`, `app/adapters/db.py` | `tests/unit/test_models.py::test_fr_020_document_out_has_listing_fields_and_no_internal_ones`, `tests/unit/test_db.py::test_fr_020_add_get_and_list` | partial |
 | FR-021 | T004, T007 | `app/core/models.py`, `app/adapters/db.py` | `tests/unit/test_models.py::test_fr_021_chunk_out_fields`, `tests/unit/test_db.py::test_fr_021_chunks_in_page_order` | partial |
-| FR-022 | T007 | `app/adapters/db.py` | `tests/unit/test_db.py::test_fr_022_delete_removes_document_and_chunks` | partial |
+| FR-022 | T007, T008 | `app/adapters/db.py`, `app/adapters/file_store.py` | `tests/unit/test_db.py::test_fr_022_delete_removes_document_and_chunks`, `tests/unit/test_file_store.py::test_fr_022_delete_removes_file` | partial |
 | FR-023 | | | | gap |
 | FR-030 | | | | gap |
 | FR-031 | | | | gap |
@@ -46,3 +46,4 @@ Every functional requirement maps to the tasks that implement it, the source fil
 |---|---|---|---|
 | VII.3 structured request logs, no document text | T003 | `app/api/logging.py` | `tests/api/test_logging.py::test_one_structured_line_per_request` |
 | III.10 `app/core` imports no infrastructure libraries | T006 | `app/core/` | `tests/unit/test_architecture.py::test_core_imports_no_banned_modules`, `::test_core_does_not_import_adapters_or_api` |
+| IV.3 uploads stored under generated names, never user names | T008 | `app/adapters/file_store.py` | `tests/unit/test_file_store.py::test_saves_under_generated_name_inside_folder`, `::test_rejects_unsafe_extensions`, `::test_delete_refuses_names_outside_folder` |
