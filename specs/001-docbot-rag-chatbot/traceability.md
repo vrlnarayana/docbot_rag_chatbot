@@ -4,15 +4,15 @@ Every functional requirement maps to the tasks that implement it, the source fil
 
 | FR | Tasks | Source files | Tests | Status |
 |---|---|---|---|---|
-| FR-001 | T005, T013 | `app/core/errors.py`, `app/adapters/extractors.py` | `tests/unit/test_errors.py::test_fr_001_supported_extensions`, `tests/unit/test_extract_pdf.py::test_fr_001_text_pdf_pages`, `tests/unit/test_extract_pdf.py::test_fr_001_table_rows_stay_on_one_line` | partial |
-| FR-002 | T005 | `app/core/errors.py` | `tests/unit/test_errors.py::test_fr_002_unsupported_type_message_lists_supported_types` | partial |
-| FR-003 | | | | gap |
+| FR-001 | T005, T013, T014 | `app/core/errors.py`, `app/adapters/extractors.py`, `app/core/services.py` | `tests/unit/test_errors.py::test_fr_001_supported_extensions`, `tests/unit/test_extract_pdf.py::test_fr_001_text_pdf_pages`, `tests/unit/test_extract_pdf.py::test_fr_001_table_rows_stay_on_one_line`, `tests/unit/test_ingestion.py::test_fr_001_ingest_indexes_document_and_chunks` | partial |
+| FR-002 | T005, T014 | `app/core/errors.py`, `app/core/services.py` | `tests/unit/test_errors.py::test_fr_002_unsupported_type_message_lists_supported_types`, `tests/unit/test_ingestion.py::test_fr_002_unsupported_type_stores_nothing` | partial |
+| FR-003 | T014 | `app/core/services.py` | `tests/unit/test_ingestion.py::test_fr_003_too_large_is_rejected` | partial |
 | FR-004 | T013 | `app/adapters/extractors.py` | `tests/unit/test_extract_pdf.py::test_fr_004_page_without_text_layer_is_ocrd` | tested |
 | FR-005 | T012 | `app/adapters/extractors.py` | `tests/unit/test_extract_image.py::test_fr_005_png_text_is_ocr_page_one`, `tests/unit/test_extract_image.py::test_fr_005_jpg_supported` | tested |
 | FR-006 | T011 | `app/adapters/extractors.py` | `tests/unit/test_extract_text.py::test_fr_006_utf8_text_is_page_one`, `tests/unit/test_extract_text.py::test_fr_006_falls_back_to_latin1` | tested |
 | FR-007 | T010 | `app/core/chunking.py` | `tests/unit/test_chunking.py::test_fr_007_chunks_never_exceed_size`, `tests/unit/test_chunking.py::test_fr_007_consecutive_chunks_overlap`, `tests/unit/test_chunking.py::test_fr_007_prefers_paragraph_breaks`, `tests/unit/test_chunking.py::test_fr_007_prefers_line_breaks_over_spaces`, `tests/unit/test_chunking.py::test_fr_007_never_crosses_pages_and_keeps_source`, `tests/unit/test_chunking.py::test_fr_007_drops_tiny_chunks_unless_only_text`, `tests/unit/test_chunking.py::test_fr_007_no_text_is_lost`, `tests/unit/test_chunking.py::test_fr_007_short_text_is_one_chunk` | tested |
-| FR-008 | T007 | `app/adapters/db.py` | `tests/unit/test_db.py::test_fr_008_lookup_by_sha256` | partial |
-| FR-009 | T007 | `app/adapters/db.py` | `tests/unit/test_db.py::test_fr_009_failed_insert_stores_nothing` | partial |
+| FR-008 | T007, T014 | `app/adapters/db.py`, `app/core/services.py` | `tests/unit/test_db.py::test_fr_008_lookup_by_sha256`, `tests/unit/test_ingestion.py::test_fr_008_duplicate_returns_existing_without_reindexing` | partial |
+| FR-009 | T007, T014 | `app/adapters/db.py`, `app/core/services.py` | `tests/unit/test_db.py::test_fr_009_failed_insert_stores_nothing`, `tests/unit/test_ingestion.py::test_fr_009_no_text_stores_nothing`, `tests/unit/test_ingestion.py::test_fr_009_failed_insert_removes_saved_file` | partial |
 | FR-010 | T004 | `app/core/models.py` | `tests/unit/test_models.py::test_fr_010_ask_request_rejects_bad_question_length`, `tests/unit/test_models.py::test_fr_010_ask_request_top_k_bounds`, `tests/unit/test_settings.py::test_fr_010_top_k_bounds` | partial |
 | FR-011 | | | | gap |
 | FR-012 | | | | gap |

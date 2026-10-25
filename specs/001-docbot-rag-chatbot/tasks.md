@@ -27,7 +27,7 @@ Conventions: `[P]` = can run in parallel with the other `[P]` tasks in the same 
 - [x] T011 [P] [FR-006] `TextFileExtractor`: whole file as page 1, UTF-8 then Latin-1
 - [x] T012 [P] [FR-005] OCR helper (`rapidocr-onnxruntime`, lines in reading order) and `ImageExtractor` (page 1, `source = ocr`)
 - [x] T013 [FR-004] `PdfExtractor`: `pypdf` layout text with column runs collapsed to ` | `; pages under 20 chars rendered with `pypdfium2` at 200 DPI and OCR'd; encrypted/corrupt PDFs → `ExtractionFailed`
-- [ ] T014 [FR-001, FR-008, FR-009] `IngestionService.ingest` (core): extension check, SHA-256 duplicate check, extraction via the port, no-text rejection, chunking, optional embedding, save file then insert in one transaction, delete file if the insert fails, retriever refresh
+- [x] T014 [FR-001, FR-008, FR-009] `IngestionService.ingest` (core): extension check, SHA-256 duplicate check, extraction via the port, no-text rejection, chunking, optional embedding, save file then insert in one transaction, delete file if the insert fails, retriever refresh
 - [ ] T015 [FR-001, FR-002, FR-003, FR-008, FR-009] `POST /documents`: size limit enforced while streaming (413), type (415 listing supported types), 201 new / 200 duplicate, 422 no text; CPU work in a worker thread
 
 ## Phase 4 — US-2 Ask a question and get a cited answer (P1)
