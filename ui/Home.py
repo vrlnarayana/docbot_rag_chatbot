@@ -4,18 +4,12 @@ from typing import Any
 
 import streamlit as st
 from api_client import ApiError, ApiUnavailable, api_down_banner, client
+from markdown_safe import inline, plain
 
 st.set_page_config(page_title="DocBot · Chat", page_icon="💬", layout="wide")
 
 MAX_TURNS = 6  # FR-073: the API keeps no conversation; we send the most recent turns
 MAX_TURN_CHARS = 2000
-
-
-def plain(text: str) -> str:
-    """Show document text as written: no Markdown headings, tables or links, keep line breaks."""
-    for char in "\\`*_#|[]<>":
-        text = text.replace(char, "\\" + char)
-    return text.replace("\n", "  \n")
 
 
 def recent_turns(messages: list[dict[str, Any]]) -> list[dict[str, str]]:
@@ -31,13 +25,13 @@ def show_answer(reply: dict[str, Any]) -> None:
         st.markdown(plain(reply["answer"]))
         return
     if reply.get("standalone_question"):
-        st.caption(f"🔎 Searched for: {reply['standalone_question']}")
+        st.caption(f"🔎 Searched for: {plain(reply['standalone_question'])}")
     if not reply["grounded"]:
         st.info(reply["answer"], icon="🔎")
     else:
         st.markdown(plain(reply["answer"]))
     for c in reply["citations"]:
-        with st.expander(f"[{c['n']}] {c['filename']} · p. {c['page']}"):
+        with st.expander(f"[{c['n']}] {inline(c['filename'])} · p. {c['page']}"):
             st.code(c["passage"], language=None, wrap_lines=True)
             st.caption(f"Retrieval score {c['score']:.2f}")
     meta = f"{reply['generator_used']} generator · {reply['retriever']} retriever"

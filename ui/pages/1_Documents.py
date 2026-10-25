@@ -2,6 +2,7 @@
 
 import streamlit as st
 from api_client import ApiError, ApiUnavailable, api_down_banner, client
+from markdown_safe import inline
 
 st.set_page_config(page_title="DocBot · Documents", page_icon="📄", layout="wide")
 st.title("📄 Documents")
@@ -27,13 +28,13 @@ try:
                     with st.spinner(f"Indexing {f.name}…"):
                         result = api.upload(f.name, f.getvalue())
                 except ApiError as exc:
-                    st.error(f"{f.name}: {exc.message}")
+                    st.error(f"{inline(f.name)}: {exc.message}")
                 else:
                     if result["duplicate"]:
-                        st.info(f"{f.name}: already in the library.")
+                        st.info(f"{inline(f.name)}: already in the library.")
                     else:
                         doc = result["document"]
-                        st.success(f"{f.name}: indexed ({doc['chunk_count']} chunks).")
+                        st.success(f"{inline(f.name)}: indexed ({doc['chunk_count']} chunks).")
         if right.button("Generate & load sample documents"):
             with st.spinner("Generating and indexing the sample set…"):
                 loaded = api.load_samples()
@@ -42,7 +43,7 @@ try:
                 f"{loaded['duplicates']} already in the library."
             )
             for failed in loaded["failed"]:
-                st.warning(f"{failed['filename']}: {failed['reason']}")
+                st.warning(f"{inline(failed['filename'])}: {failed['reason']}")
 
     documents = api.documents()
 except ApiUnavailable as exc:
@@ -78,7 +79,7 @@ selected = st.selectbox(
 document = by_id[selected]
 
 if st.session_state.get("pending_delete") == selected:
-    st.warning(f"Delete **{document['filename']}** and its chunks? This cannot be undone.")
+    st.warning(f"Delete **{inline(document['filename'])}** and its chunks? This cannot be undone.")
     yes, no = st.columns(2)
     if yes.button("Yes, delete", type="primary"):
         try:
@@ -86,7 +87,7 @@ if st.session_state.get("pending_delete") == selected:
         except (ApiError, ApiUnavailable) as exc:
             st.session_state.flash = ("error", str(exc))
         else:
-            st.session_state.flash = ("success", f"Deleted {document['filename']}.")
+            st.session_state.flash = ("success", f"Deleted {inline(document['filename'])}.")
         st.session_state.pop("pending_delete", None)
         st.rerun()
     if no.button("Cancel"):

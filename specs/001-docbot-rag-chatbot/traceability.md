@@ -74,3 +74,4 @@ Every functional requirement maps to the tasks that implement it, the source fil
 | SC-006 every FR tested, no gaps | T037 | This file |
 | SC-007 newcomer to cited answer in < 10 min | T036 | README quick-start, timed from a fresh clone on 2026-10-25: pip install 4 min 49 s, first API start with model download 60 s, first cited answer at about 6 min |
 | FR-055 threshold for text-embedding-3-small | T045 | Manual run on the sample set with the real API, 2026-10-25: answerable 0.52–0.79, refusals 0.27–0.51; golden set 100 % / 100 % / 100 % at 0.50 and 0.45. Not automated: tests must not use the network. |
+| UI shows document, file-name and LLM text without live Markdown (security review) | T050 | `ui/markdown_safe.py`, `ui/Home.py`, `ui/pages/1_Documents.py` | `tests/ui/test_markdown_safety.py` |
