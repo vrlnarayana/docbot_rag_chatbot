@@ -43,6 +43,7 @@ async def build_container(settings: Settings) -> Container:
         chunk_size=settings.chunk_size,
         chunk_overlap=settings.chunk_overlap,
         max_upload_bytes=settings.max_upload_bytes,
+        max_pdf_bytes=settings.max_pdf_bytes,
     )
     return Container(
         settings=settings,

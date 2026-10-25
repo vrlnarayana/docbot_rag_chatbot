@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     sample_dir: Path = Path("./sample_data")
     golden_path: Path = Path("./eval/golden.yaml")
     max_upload_mb: int = Field(default=20, ge=1)
+    max_pdf_mb: int = Field(default=1, ge=1)
     chunk_size: int = Field(default=800, ge=100)
     chunk_overlap: int = Field(default=100, ge=0)
     retriever: str = "vector"
@@ -53,6 +54,10 @@ class Settings(BaseSettings):
     @property
     def max_upload_bytes(self) -> int:
         return self.max_upload_mb * 1024 * 1024
+
+    @property
+    def max_pdf_bytes(self) -> int:
+        return self.max_pdf_mb * 1024 * 1024
 
     @property
     def files_dir(self) -> Path:

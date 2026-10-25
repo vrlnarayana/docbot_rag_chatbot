@@ -31,12 +31,13 @@ _UPLOAD_BODY = {
 }
 
 
-async def _read_limited(upload: UploadFile, limit_bytes: int, limit_mb: int) -> bytes:
+async def _read_limited(upload: UploadFile, limit_bytes: int) -> bytes | None:
+    """Read the file, or return None as soon as it goes over the limit."""
     data = bytearray()
     while block := await upload.read(_READ_BLOCK):
         data.extend(block)
         if len(data) > limit_bytes:
-            raise FileTooLarge(limit_mb)
+            return None
     return bytes(data)
 
 
@@ -70,8 +71,11 @@ async def upload_document(
             raise RequestValidationError(
                 [{"loc": ("body", "file"), "msg": "a file is required", "type": "missing"}]
             )
-        container.ingestion.check_upload(upload.filename)
-        data = await _read_limited(upload, settings.max_upload_bytes, settings.max_upload_mb)
+        ingestion = container.ingestion
+        extension = ingestion.check_upload(upload.filename)
+        data = await _read_limited(upload, ingestion.size_limit(extension))
+        if data is None:
+            raise ingestion.too_large(extension)
         document, duplicate = await container.ingestion.ingest(upload.filename, data)
 
     response.status_code = 200 if duplicate else 201

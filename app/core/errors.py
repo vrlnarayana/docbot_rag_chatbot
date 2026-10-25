@@ -25,10 +25,10 @@ class UnsupportedFileType(DocBotError):
 class FileTooLarge(DocBotError):
     code = "too_large"
 
-    def __init__(self, limit_mb: int) -> None:
+    def __init__(self, limit_mb: int, what: str = "File", setting: str = "DOCBOT_MAX_UPLOAD_MB"):
         super().__init__(
-            f"File is larger than the {limit_mb} MB limit. "
-            "Upload a smaller file or raise DOCBOT_MAX_UPLOAD_MB."
+            f"{what} is larger than the {limit_mb} MB limit. "
+            f"Upload a smaller file or raise {setting}."
         )
 
 

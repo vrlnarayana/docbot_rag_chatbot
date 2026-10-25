@@ -33,6 +33,7 @@ class IngestionService:
         chunk_size: int,
         chunk_overlap: int,
         max_upload_bytes: int,
+        max_pdf_bytes: int | None = None,
     ) -> None:
         self._repo = repository
         self._files = file_store
@@ -42,6 +43,7 @@ class IngestionService:
         self._chunk_size = chunk_size
         self._chunk_overlap = chunk_overlap
         self._max_bytes = max_upload_bytes
+        self._max_pdf_bytes = max_pdf_bytes if max_pdf_bytes is not None else max_upload_bytes
 
     def check_upload(self, filename: str) -> str:
         """FR-002: return the lower-case extension, or raise if it is not supported."""
@@ -50,11 +52,21 @@ class IngestionService:
             raise UnsupportedFileType(extension)
         return extension
 
+    def size_limit(self, extension: str) -> int:
+        """FR-003: PDFs have their own, lower limit; every other type shares the upload limit."""
+        return self._max_pdf_bytes if extension == ".pdf" else self._max_bytes
+
+    def too_large(self, extension: str) -> FileTooLarge:
+        limit_mb = self.size_limit(extension) // (1024 * 1024)
+        if extension == ".pdf":
+            return FileTooLarge(limit_mb, what="PDF", setting="DOCBOT_MAX_PDF_MB")
+        return FileTooLarge(limit_mb)
+
     async def ingest(self, filename: str, data: bytes) -> tuple[Document, bool]:
         """Index one file. Returns the document and whether it was already indexed."""
         extension = self.check_upload(filename)
-        if len(data) > self._max_bytes:
-            raise FileTooLarge(self._max_bytes // (1024 * 1024))
+        if len(data) > self.size_limit(extension):
+            raise self.too_large(extension)
 
         sha256 = hashlib.sha256(data).hexdigest()
         existing = await self._repo.get_by_sha256(sha256)

@@ -159,3 +159,27 @@ async def test_embeddings_stored_when_embedder_configured(
     [indexed] = await repo.indexed_chunks()
     assert indexed.embed_model == "fake-embed"
     assert indexed.embedding == [float(len(indexed.chunk.text)), 1.0]
+
+
+async def test_fr_003_pdf_has_its_own_lower_limit(
+    repo: SqliteDocumentRepository, tmp_path: Path
+) -> None:
+    extractor = FakeExtractor([Page(number=1, text=LONG, source="text")])
+    svc = IngestionService(
+        repository=repo,
+        file_store=LocalFileStore(tmp_path / "files"),
+        extractors={"pdf": extractor, "image": extractor, "text": extractor},
+        embedder=None,
+        retriever=None,
+        chunk_size=800,
+        chunk_overlap=100,
+        max_upload_bytes=1000,
+        max_pdf_bytes=100,
+    )
+    assert svc.size_limit(".pdf") == 100
+    assert svc.size_limit(".txt") == 1000
+    with pytest.raises(FileTooLarge, match="PDF"):
+        await svc.ingest("big.pdf", b"x" * 101)
+    doc, _ = await svc.ingest("ok.txt", b"x" * 101)  # same size is fine for text
+    assert doc.status == "indexed"
+    assert extractor.calls == 1

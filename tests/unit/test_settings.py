@@ -60,3 +60,10 @@ def test_fr_010_top_k_bounds(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) ->
     monkeypatch.setenv("DOCBOT_TOP_K", "11")
     with pytest.raises(ValidationError):
         Settings()
+
+
+def test_fr_003_pdf_limit_defaults_to_1_mb(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    monkeypatch.chdir(tmp_path)
+    s = Settings()
+    assert s.max_pdf_mb == 1
+    assert s.max_pdf_bytes == 1024 * 1024

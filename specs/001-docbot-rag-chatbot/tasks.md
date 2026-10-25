@@ -29,7 +29,7 @@ Conventions: `[P]` = can run in parallel with the other `[P]` tasks in the same 
 - [x] T013 [FR-004] `PdfExtractor`: `pypdf` layout text with column runs collapsed to ` | `; pages under 20 chars rendered with `pypdfium2` at 200 DPI and OCR'd; encrypted/corrupt PDFs → `ExtractionFailed`
 - [x] T014 [FR-001, FR-008, FR-009] `IngestionService.ingest` (core): extension check, SHA-256 duplicate check, extraction via the port, no-text rejection, chunking, optional embedding, save file then insert in one transaction, delete file if the insert fails, retriever refresh
 - [x] T015 [FR-001, FR-002, FR-003, FR-008, FR-009] `POST /documents`: size limit enforced while streaming (413), type (415 listing supported types), 201 new / 200 duplicate, 422 no text; CPU work in a worker thread
-- [ ] T038 [FR-003] Per-type size limit: PDFs capped at `DOCBOT_MAX_PDF_MB` (default 1 MB) with 413; other types keep `DOCBOT_MAX_UPLOAD_MB` (added after the FR-003 amendment, 2026-10-25)
+- [x] T038 [FR-003] Per-type size limit: PDFs capped at `DOCBOT_MAX_PDF_MB` (default 1 MB) with 413; other types keep `DOCBOT_MAX_UPLOAD_MB` (added after the FR-003 amendment, 2026-10-25)
 
 ## Phase 4 — US-2 Ask a question and get a cited answer (P1)
 

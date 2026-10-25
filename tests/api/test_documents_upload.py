@@ -153,3 +153,12 @@ async def test_fr_003_upload_without_content_length_is_rejected(
     assert resp.status_code == 411
     assert ErrorResponse.model_validate(resp.json()).code == "length_required"
     assert (await client.get("/status")).json()["documents"] == 0
+
+
+async def test_fr_003_pdf_over_1_mb_is_413(client: httpx.AsyncClient, settings: Settings) -> None:
+    pdf = b"%PDF-1.4\n" + b"0" * (settings.max_pdf_bytes + 1)
+    resp = await upload(client, "big.pdf", pdf, "application/pdf")
+    assert resp.status_code == 413
+    err = ErrorResponse.model_validate(resp.json())
+    assert err.code == "too_large" and "1 MB" in err.message
+    assert (await client.get("/status")).json()["documents"] == 0
