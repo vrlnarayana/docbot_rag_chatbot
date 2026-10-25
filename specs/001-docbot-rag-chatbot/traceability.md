@@ -30,8 +30,8 @@ Every functional requirement maps to the tasks that implement it, the source fil
 | FR-030 | T023, T024 | `app/adapters/samples.py`, `app/api/routes/samples.py`, `scripts/generate_samples.py` | `tests/unit/test_samples.py::test_fr_030_generates_the_eight_files_and_golden_set`, `tests/unit/test_samples.py::test_fr_030_output_is_deterministic`, `tests/api/test_samples_api.py::test_fr_030_generate_endpoint_writes_files`, `tests/api/test_samples_api.py::test_fr_030_generate_script` | tested |
 | FR-031 | T024 | `app/api/routes/samples.py` | `tests/api/test_samples_api.py::test_fr_031_load_generates_if_missing_then_reports_duplicates`, `tests/api/test_samples_api.py::test_fr_031_unreadable_file_is_reported_not_fatal` | tested |
 | FR-032 | T023 | `app/adapters/samples.py` | `tests/unit/test_samples.py::test_fr_032_content_is_fictional_and_avoids_the_refusal_topics` | tested |
-| FR-040 | | | | gap |
-| FR-041 | | | | gap |
+| FR-040 | T028 | `app/core/services.py` | `tests/unit/test_evaluation.py::test_fr_040_reports_hit_fact_and_refusal_per_case`, `tests/unit/test_evaluation.py::test_fr_040_empty_library_is_rejected` | partial |
+| FR-041 | T028 | `app/core/services.py` | `tests/unit/test_evaluation.py::test_fr_041_summary_metrics_as_percentages` | partial |
 | FR-050 | T001, T002, T039 | `pyproject.toml`, `.env.example`, `app/settings.py` | `tests/unit/test_settings.py::test_fr_050_defaults_match_plan`, `tests/unit/test_settings.py::test_fr_050_reads_env_and_dotenv`, `tests/unit/test_settings.py::test_fr_019_provider_standard_key_names_are_accepted` | tested |
 | FR-051 | T009, T017 | `app/api/routes/status.py`, `app/api/deps.py` | `tests/api/test_health_status.py::test_fr_051_status_reports_configuration_and_counts`, `tests/api/test_retriever_wiring.py::test_fr_051_falls_back_to_keyword_when_model_unavailable` | tested |
 | FR-052 | T002, T009 | `app/settings.py`, `app/api/main.py` | `tests/unit/test_settings.py::test_fr_052_unknown_generator_fails_with_valid_options`, `tests/unit/test_settings.py::test_fr_052_unknown_retriever_fails_with_valid_options`, `tests/api/test_health_status.py::test_fr_052_startup_fails_with_clear_message` | tested |

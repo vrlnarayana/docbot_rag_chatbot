@@ -11,14 +11,24 @@ import anyio
 
 from app.core.answerability import AnswerabilityGate
 from app.core.chunking import chunk_pages
-from app.core.errors import DocumentNotFound, FileTooLarge, NoTextExtracted, UnsupportedFileType
+from app.core.errors import (
+    DocumentNotFound,
+    FileTooLarge,
+    NoDocuments,
+    NoTextExtracted,
+    UnsupportedFileType,
+)
 from app.core.models import (
     AskResponse,
     Chunk,
     CitationOut,
     DocType,
     Document,
+    EvalCaseResult,
+    EvalRunResponse,
+    EvalSummary,
     GeneratedAnswer,
+    GoldenCase,
     RetrievedChunk,
 )
 from app.core.ports import (
@@ -229,7 +239,7 @@ class QAService:
         if chunk_count == 0:
             return respond(EMPTY_LIBRARY)
 
-        retrieved = await anyio.to_thread.run_sync(self.retriever.search, question, top_k)
+        retrieved = await self.retrieve(question, top_k)
         if not retrieved or retrieved[0].score < self.retriever.min_score:
             return respond(REFUSAL)
         coverage = self._gate.coverage(question, [r.chunk.text for r in retrieved])
@@ -246,6 +256,61 @@ class QAService:
         if not citations:
             return respond(REFUSAL, generator_used=answer.generator_used)
         return respond(text, citations, answer.generator_used, fallback_reason)
+
+
+    async def retrieve(self, question: str, top_k: int) -> list[RetrievedChunk]:
+        return await anyio.to_thread.run_sync(self.retriever.search, question, top_k)
+
+
+class EvaluationService:
+    """FR-040, FR-041: run the golden set through the same QA pipeline users get."""
+
+    def __init__(self, repository: DocumentRepository, qa: QAService) -> None:
+        self._repo = repository
+        self._qa = qa
+
+    async def run(self, cases: list[GoldenCase], top_k: int) -> EvalRunResponse:
+        _documents, chunk_count = await self._repo.counts()
+        if chunk_count == 0:
+            raise NoDocuments()
+        results = [await self._run_case(case, top_k) for case in cases]
+        answerable = [r for r in results if not r.expect_refusal]
+        refusals = [r for r in results if r.expect_refusal]
+        summary = EvalSummary(
+            cases=len(results),
+            hit_rate_at_k=_percent(sum(r.hit for r in answerable), len(answerable)),
+            answer_accuracy=_percent(sum(r.fact_found for r in answerable), len(answerable)),
+            refusal_accuracy=_percent(sum(r.refusal_correct for r in refusals), len(refusals)),
+            retriever=self._qa.retriever.name,
+            generator=self._qa.generator.name,
+            top_k=top_k,
+        )
+        return EvalRunResponse(summary=summary, results=results)
+
+    async def _run_case(self, case: GoldenCase, top_k: int) -> EvalCaseResult:
+        retrieved = await self._qa.retrieve(case.question, top_k)
+        files = list(dict.fromkeys(r.filename for r in retrieved))
+        answer = await self._qa.ask(case.question, top_k)
+        refused = not answer.grounded
+        text = answer.answer.lower()
+        answerable = not case.expect_refusal
+        return EvalCaseResult(
+            question=case.question,
+            expected_file=case.expected_file,
+            expected_page=case.expected_page,
+            retrieved_files=files,
+            hit=answerable and case.expected_file in files,
+            fact_found=answerable
+            and not refused
+            and all(k.lower() in text for k in case.expected_keywords),
+            expect_refusal=case.expect_refusal,
+            refused=refused,
+            refusal_correct=refused == case.expect_refusal,
+        )
+
+
+def _percent(part: int, whole: int) -> float:
+    return round(100 * part / whole, 1) if whole else 0.0
 
 
 def _cite(
