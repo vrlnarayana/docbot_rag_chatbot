@@ -11,7 +11,7 @@ import anyio
 
 from app.core.answerability import AnswerabilityGate
 from app.core.chunking import chunk_pages
-from app.core.conversation import small_talk_kind, small_talk_reply
+from app.core.conversation import local_standalone, small_talk_kind, small_talk_reply
 from app.core.errors import (
     DocumentNotFound,
     FileTooLarge,
@@ -39,6 +39,7 @@ from app.core.ports import (
     Extractor,
     FileStore,
     Generator,
+    QuestionRewriter,
     Retriever,
 )
 
@@ -210,10 +211,12 @@ class QAService:
         gate: AnswerabilityGate,
         min_coverage: float,
         fallback: Generator | None = None,
+        rewriter: QuestionRewriter | None = None,
     ) -> None:
         self._repo = repository
         self.retriever = retriever
         self.generator = generator
+        self.rewriter = rewriter
         self._gate = gate
         self._min_coverage = min_coverage
         self._fallback = fallback
@@ -230,6 +233,7 @@ class QAService:
             fallback_reason: str | None = None,
             small_talk: bool = False,
         ) -> AskResponse:
+            rewritten = standalone if standalone != question else None
             return AskResponse(
                 answer=text,
                 grounded=bool(citations),
@@ -239,34 +243,45 @@ class QAService:
                 fallback_reason=fallback_reason,
                 latency_ms=round((time.perf_counter() - start) * 1000, 1),
                 small_talk=small_talk,
+                standalone_question=rewritten,
             )
 
+        standalone = question
         kind = small_talk_kind(question)
         if kind:  # FR-071: no retrieval, no LLM
             return respond(small_talk_reply(kind), small_talk=True)
+        if history:  # FR-070: everything below works on the standalone question
+            standalone = await self._standalone(question, history)
 
         _documents, chunk_count = await self._repo.counts()
         if chunk_count == 0:
             return respond(EMPTY_LIBRARY)
 
-        retrieved = await self.retrieve(question, top_k)
+        retrieved = await self.retrieve(standalone, top_k)
         if not retrieved or retrieved[0].score < self.retriever.min_score:
             return respond(REFUSAL)
-        coverage = self._gate.coverage(question, [r.chunk.text for r in retrieved])
+        coverage = self._gate.coverage(standalone, [r.chunk.text for r in retrieved])
         if coverage < self._min_coverage:
             return respond(REFUSAL)
 
-        answer = await self.generator.generate(question, retrieved)
+        answer = await self.generator.generate(standalone, retrieved)
         text, citations = _cite(answer, retrieved)
         fallback_reason = answer.fallback_reason
         if not citations and self._fallback and answer.generator_used != self._fallback.name:
             fallback_reason = f"{answer.generator_used} answer had no valid citations"
-            answer = await self._fallback.generate(question, retrieved)
+            answer = await self._fallback.generate(standalone, retrieved)
             text, citations = _cite(answer, retrieved)
         if not citations:
             return respond(REFUSAL, generator_used=answer.generator_used)
         return respond(text, citations, answer.generator_used, fallback_reason)
 
+
+    async def _standalone(self, question: str, history: list[ChatTurn]) -> str:
+        if self.rewriter:
+            rewritten = await self.rewriter.rewrite(question, history)
+            if rewritten:
+                return rewritten
+        return local_standalone(question, history) or question
 
     async def retrieve(self, question: str, top_k: int) -> list[RetrievedChunk]:
         return await anyio.to_thread.run_sync(self.retriever.search, question, top_k)

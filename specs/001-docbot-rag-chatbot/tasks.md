@@ -58,7 +58,7 @@ Conventions: `[P]` = can run in parallel with the other `[P]` tasks in the same 
 
 - [x] T046 [FR-010, FR-073] Models: `ChatTurn`, `AskRequest.history` (≤ 6 turns), question 2–1000 chars; `AskResponse.standalone_question` and `small_talk`
 - [x] T047 [FR-071] `app/core/conversation.py`: small-talk detection and replies; `QAService` answers small talk without retrieval
-- [ ] T048 [FR-070] `QuestionRewriter` port, local follow-up rule, fallback chain; `QAService` uses the standalone question throughout and returns it
+- [x] T048 [FR-070] `QuestionRewriter` port, local follow-up rule, fallback chain; `QAService` uses the standalone question throughout and returns it
 - [ ] T049 [FR-070, FR-072, FR-054] LLM rewriting in the OpenAI, Claude and Ollama generators (strict schema, fallback to the local rule); conversational system prompt; wiring; cloud notice mentions conversation turns
 - [ ] T050 [FR-073, FR-062] Chat page sends the last 6 turns, shows "Searched for", styles small talk
 - [ ] T051 [FR-070, FR-071] API and end-to-end conversation tests on the sample corpus

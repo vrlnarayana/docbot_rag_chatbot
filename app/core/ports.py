@@ -2,7 +2,15 @@
 
 from typing import Protocol
 
-from app.core.models import Chunk, Document, GeneratedAnswer, IndexedChunk, Page, RetrievedChunk
+from app.core.models import (
+    ChatTurn,
+    Chunk,
+    Document,
+    GeneratedAnswer,
+    IndexedChunk,
+    Page,
+    RetrievedChunk,
+)
 
 
 class DocumentRepository(Protocol):
@@ -70,3 +78,9 @@ class Generator(Protocol):
     name: str
 
     async def generate(self, question: str, chunks: list[RetrievedChunk]) -> GeneratedAnswer: ...
+
+
+class QuestionRewriter(Protocol):
+    """FR-070: turns a follow-up into a standalone question, or returns None if it cannot."""
+
+    async def rewrite(self, question: str, history: list[ChatTurn]) -> str | None: ...
