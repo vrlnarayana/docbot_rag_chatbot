@@ -38,7 +38,7 @@ Conventions: `[P]` = can run in parallel with the other `[P]` tasks in the same 
 - [x] T018 [P] [FR-012] `app/core/answerability.py`: tokenizer + IDF-weighted coverage gate (plan §7.2 step 4)
 - [x] T019 [P] [FR-013] `ExtractiveGenerator`: best 3-line window by IDF-weighted overlap, tie-breaks per plan §7.4, ends with its citation marker
 - [x] T020 [FR-010, FR-012, FR-013, FR-014, FR-015, FR-018] `QAService.ask` (core): empty-library message, top-k retrieval, score gate, coverage gate, generation, citation validation, `CitationOut` numbered by first use
-- [ ] T021 [FR-015, FR-016, FR-017] `OllamaGenerator`: `httpx` + `tenacity` (2 retries on connection errors, timeouts and 5xx with exponential jitter; no retry on 4xx), `LlmAnswer` strict parsing, fallback to extractive with `fallback_reason`
+- [x] T021 [FR-015, FR-016, FR-017] `OllamaGenerator`: `httpx` + `tenacity` (2 retries on connection errors, timeouts and 5xx with exponential jitter; no retry on 4xx), `LlmAnswer` strict parsing, fallback to extractive with `fallback_reason`
 - [ ] T022 [FR-010…FR-018] `POST /ask` with `AskRequest` validation (question 3–1000 chars, `top_k` 1–10) and `AskResponse`
 
 ## Phase 5 — US-3 Generate and load the sample corpus (P2)

@@ -79,6 +79,14 @@ class GeneratedAnswer(_Strict):
     fallback_reason: str | None = None
 
 
+class LlmAnswer(_Strict):
+    """What an LLM generator must return (FR-015). Parsed strictly; extra fields are rejected."""
+
+    answer: str
+    citations: list[int]
+    grounded: bool
+
+
 class GoldenCase(_Strict):
     question: str
     expected_file: str | None = None
