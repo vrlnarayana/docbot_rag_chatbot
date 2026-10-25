@@ -67,7 +67,7 @@ Conventions: `[P]` = can run in parallel with the other `[P]` tasks in the same 
 
 - [x] T030 [FR-061, FR-064] `ui/api_client.py`: thin `httpx` wrapper, one consistent "API not reachable at <url>" banner
 - [x] T031 [FR-060, FR-062, FR-054] `ui/Home.py` Chat page: session history, citations as `[n] file · p. X` with expandable passage and score, sidebar with retriever, generator and `top_k`
-- [ ] T032 [P] [FR-060, FR-063] `ui/pages/1_Documents.py`: multi-file upload, "Generate & load sample documents", table, view chunks, delete with confirmation
+- [x] T032 [P] [FR-060, FR-063] `ui/pages/1_Documents.py`: multi-file upload, "Generate & load sample documents", table, view chunks, delete with confirmation
 - [ ] T033 [P] [FR-060] `ui/pages/2_Evaluate.py`: run button, `st.metric` summary, per-case ✅/❌ table
 - [ ] T034 [P] [FR-060, FR-051, FR-054] `ui/pages/3_Status.py`: `/status` output and how to switch retriever / generator in `.env`
 
