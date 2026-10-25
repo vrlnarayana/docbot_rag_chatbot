@@ -8,7 +8,7 @@ Conventions: `[P]` = can run in parallel with the other `[P]` tasks in the same 
 
 ## Phase 1 — Setup
 
-- [ ] T001 [FR-050] `pyproject.toml` (Article II dependencies, `dev` extra, ruff/mypy/pytest config), package layout (`app/core`, `app/adapters`, `app/api/routes`, `ui`, `scripts`, `tests/{unit,api,e2e}`), `.gitignore` (`data/`, `sample_data/`, `.venv/`, `.env`), `.env.example`
+- [x] T001 [FR-050] `pyproject.toml` (Article II dependencies, `dev` extra, ruff/mypy/pytest config), package layout (`app/core`, `app/adapters`, `app/api/routes`, `ui`, `scripts`, `tests/{unit,api,e2e}`), `.gitignore` (`data/`, `sample_data/`, `.venv/`, `.env`), `.env.example`
 - [ ] T002 [FR-050, FR-052] `app/settings.py`: `pydantic-settings` with every `DOCBOT_*` variable and default from plan §4; `retriever` / `generator` validated against the implemented options with the exact message from plan §4
 - [ ] T003 [P] Structured logging: one JSON line per request with request id, method, path, status, duration; no document text (Constitution VII.3)
 

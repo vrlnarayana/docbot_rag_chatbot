@@ -31,7 +31,7 @@ Every functional requirement maps to the tasks that implement it, the source fil
 | FR-032 | | | | gap |
 | FR-040 | | | | gap |
 | FR-041 | | | | gap |
-| FR-050 | | | | gap |
+| FR-050 | T001 | `pyproject.toml`, `.env.example` |  | in progress |
 | FR-051 | | | | gap |
 | FR-052 | | | | gap |
 | FR-060 | | | | gap |
