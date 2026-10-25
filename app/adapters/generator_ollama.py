@@ -33,7 +33,7 @@ def _is_transient(exc: BaseException) -> bool:
     return isinstance(exc, httpx.HTTPStatusError) and exc.response.status_code >= 500
 
 
-def _prompt(question: str, chunks: list[RetrievedChunk]) -> str:
+def build_prompt(question: str, chunks: list[RetrievedChunk]) -> str:
     passages = "\n\n".join(
         f"[{n}] ({c.filename}, p. {c.chunk.page})\n{c.chunk.text}"
         for n, c in enumerate(chunks, start=1)
@@ -66,7 +66,7 @@ class OllamaGenerator:
             "format": LlmAnswer.model_json_schema(),
             "messages": [
                 {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": _prompt(question, chunks)},
+                {"role": "user", "content": build_prompt(question, chunks)},
             ],
         }
         async for attempt in AsyncRetrying(
