@@ -36,3 +36,16 @@ def test_pdf_render_is_capped_for_huge_pages() -> None:
     c.save()
     image = PdfExtractor._render(buf.getvalue(), 0)
     assert max(image.size) <= MAX_IMAGE_SIDE
+
+
+def test_pdf_render_respects_pixel_area_cap() -> None:
+    from reportlab.pdfgen import canvas
+
+    from app.adapters.extractors import MAX_IMAGE_PIXELS
+
+    buf = io.BytesIO()
+    c = canvas.Canvas(buf, pagesize=(14400, 14400), invariant=1)
+    c.showPage()
+    c.save()
+    width, height = PdfExtractor._render(buf.getvalue(), 0).size
+    assert width * height <= MAX_IMAGE_PIXELS

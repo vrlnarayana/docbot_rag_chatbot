@@ -4,6 +4,7 @@ All extractors are blocking; the ingestion service calls them in a worker thread
 """
 
 import io
+import math
 import re
 import threading
 from typing import Any
@@ -138,8 +139,14 @@ class PdfExtractor:
             pdf = pdfium.PdfDocument(data)
             try:
                 page = pdf[index]
-                longest_pt = max(page.get_size())
-                scale = min(_OCR_DPI / 72, MAX_IMAGE_SIDE / longest_pt)
+                width_pt, height_pt = page.get_size()
+                if width_pt <= 0 or height_pt <= 0:
+                    raise ExtractionFailed("a PDF page has no size")
+                scale = min(
+                    _OCR_DPI / 72,
+                    MAX_IMAGE_SIDE / max(width_pt, height_pt),
+                    math.sqrt(MAX_IMAGE_PIXELS / (width_pt * height_pt)),
+                )
                 image: Image.Image = page.render(scale=scale).to_pil()
             finally:
                 pdf.close()
