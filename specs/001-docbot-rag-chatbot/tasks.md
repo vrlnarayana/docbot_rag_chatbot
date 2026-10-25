@@ -75,4 +75,4 @@ Conventions: `[P]` = can run in parallel with the other `[P]` tasks in the same 
 
 ## Open questions
 
-- [NEEDS CLARIFICATION] **`generator_used` on a refusal (FR-012 / FR-018).** The generator is not called, but `AskResponse.generator_used` is a required field. Proposed: `"none"`. Confirm before T020.
+- ~~[NEEDS CLARIFICATION] `generator_used` on a refusal~~ **Resolved 2026-10-25:** `"none"` (recorded in spec §9).

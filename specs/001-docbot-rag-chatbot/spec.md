@@ -242,4 +242,5 @@ Company **Demo Motors**, motorcycle model **Velo 125**. The generator must put t
 - **Q:** Should ingestion be a background job? → **A:** No. The upload request waits for indexing to finish, which keeps the demo simple. CPU-heavy steps (OCR, embedding) run in a worker thread so the API stays responsive.
 - **Q:** Is chat history sent with each question? → **A:** No. Each question is answered on its own (see Scope).
 - **Q:** Should PDFs have their own size limit? → **A:** Yes. PDFs are capped at **1 MB** by default (`DOCBOT_MAX_PDF_MB`), because every page without a text layer is rendered and OCR'd, so a large PDF can tie up the CPU for a long time. Other types keep the 20 MB limit. (Amends FR-003.)
+- **Q:** What is `generator_used` when DocBot refuses or the library is empty and no generator runs? → **A:** `"none"`. It reports truthfully that no generator produced the text (FR-012, FR-018).
 - **Q:** Can learners use real Hero documents? → **A:** Not in the demo. In their own department lab they may upload non-confidential documents through the same UI.
