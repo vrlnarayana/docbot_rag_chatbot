@@ -61,7 +61,7 @@ Conventions: `[P]` = can run in parallel with the other `[P]` tasks in the same 
 ## Phase 7 — US-5 Evaluate answer quality (P3)
 
 - [x] T028 [FR-040, FR-041] `EvaluationService` (core): per-case hit / fact found / refusal correct and summary metrics
-- [ ] T029 [FR-040, FR-041] `POST /eval/run` (409 when the library is empty)
+- [x] T029 [FR-040, FR-041] `POST /eval/run` (409 when the library is empty)
 
 ## Phase 8 — UI
 

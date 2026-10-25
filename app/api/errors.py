@@ -19,6 +19,7 @@ STATUS_BY_CODE = {
     "extraction_failed": 422,
     "not_found": 404,
     "no_documents": 409,
+    "no_golden": 409,
 }
 
 

@@ -55,6 +55,17 @@ class DocumentNotFound(DocBotError):
         super().__init__(f"No document with id '{document_id}'.")
 
 
+class GoldenSetMissing(DocBotError):
+    code = "no_golden"
+
+    def __init__(self) -> None:
+        super().__init__(
+            "The golden question set (eval/golden.yaml) was not found. Generate it with "
+            "`python scripts/generate_samples.py` or the \"Generate & load sample documents\" "
+            "button."
+        )
+
+
 class NoDocuments(DocBotError):
     code = "no_documents"
 

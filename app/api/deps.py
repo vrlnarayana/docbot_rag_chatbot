@@ -21,7 +21,7 @@ from app.adapters.retriever_bm25 import Bm25Retriever
 from app.adapters.retriever_vector import VectorRetriever
 from app.core.answerability import AnswerabilityGate
 from app.core.ports import Embedder, Generator, Retriever
-from app.core.services import IngestionService, QAService
+from app.core.services import EvaluationService, IngestionService, QAService
 from app.settings import Settings
 
 
@@ -33,6 +33,7 @@ class Container:
     file_store: LocalFileStore
     ingestion: IngestionService
     qa: QAService
+    evaluation: EvaluationService
     retriever: Retriever
     fallbacks: list[str] = field(default_factory=list)
     notices: list[str] = field(default_factory=list)
@@ -139,6 +140,7 @@ async def build_container(settings: Settings) -> Container:
         file_store=file_store,
         ingestion=ingestion,
         qa=qa,
+        evaluation=EvaluationService(repository, qa),
         retriever=retriever,
         fallbacks=fallbacks,
         notices=notices,
