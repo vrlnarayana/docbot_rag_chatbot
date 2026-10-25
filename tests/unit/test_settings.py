@@ -67,3 +67,45 @@ def test_fr_003_pdf_limit_defaults_to_1_mb(monkeypatch: pytest.MonkeyPatch, tmp_
     s = Settings()
     assert s.max_pdf_mb == 1
     assert s.max_pdf_bytes == 1024 * 1024
+
+
+def test_fr_019_cloud_generators_are_valid_options(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("DOCBOT_GENERATOR", "openai")
+    monkeypatch.setenv("DOCBOT_OPENAI_API_KEY", "sk-test-123")
+    s = Settings()
+    assert s.generator == "openai"
+    assert s.openai_api_key is not None
+    assert s.openai_api_key.get_secret_value() == "sk-test-123"
+    assert "sk-test-123" not in repr(s)
+
+
+def test_fr_019_provider_standard_key_names_are_accepted(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("DOCBOT_GENERATOR", "anthropic")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-test")
+    s = Settings()
+    assert s.anthropic_api_key is not None
+    assert s.anthropic_api_key.get_secret_value() == "sk-ant-test"
+    assert s.anthropic_model == "claude-opus-5-5"
+
+
+@pytest.mark.parametrize(
+    ("generator", "variable"),
+    [("openai", "DOCBOT_OPENAI_API_KEY"), ("anthropic", "DOCBOT_ANTHROPIC_API_KEY")],
+)
+def test_fr_053_cloud_generator_without_key_fails(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, generator: str, variable: str
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    for name in ("OPENAI_API_KEY", "ANTHROPIC_API_KEY", "DOCBOT_OPENAI_API_KEY",
+                 "DOCBOT_ANTHROPIC_API_KEY"):
+        monkeypatch.delenv(name, raising=False)
+    monkeypatch.setenv("DOCBOT_GENERATOR", generator)
+    with pytest.raises(ValidationError) as exc:
+        Settings()
+    assert variable in str(exc.value)

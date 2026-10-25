@@ -1,16 +1,19 @@
 """Application settings, read from DOCBOT_* environment variables or a .env file (FR-050)."""
 
 from pathlib import Path
+from typing import Self
 
-from pydantic import Field, field_validator
+from pydantic import AliasChoices, Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 RETRIEVERS = ("vector", "keyword")
-GENERATORS = ("extractive", "ollama")
+GENERATORS = ("extractive", "ollama", "openai", "anthropic")
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="DOCBOT_", env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_prefix="DOCBOT_", env_file=".env", extra="ignore", populate_by_name=True
+    )
 
     data_dir: Path = Path("./data")
     sample_dir: Path = Path("./sample_data")
@@ -29,6 +32,16 @@ class Settings(BaseSettings):
     ollama_url: str = "http://localhost:11434"
     ollama_model: str = "llama3.2:3b"
     llm_timeout_s: float = Field(default=30, gt=0)
+    # Optional cloud generators (constitution 1.1.0). Keys are secrets: never logged or returned.
+    openai_api_key: SecretStr | None = Field(
+        default=None, validation_alias=AliasChoices("DOCBOT_OPENAI_API_KEY", "OPENAI_API_KEY")
+    )
+    openai_model: str = "gpt-5-mini"
+    anthropic_api_key: SecretStr | None = Field(
+        default=None,
+        validation_alias=AliasChoices("DOCBOT_ANTHROPIC_API_KEY", "ANTHROPIC_API_KEY"),
+    )
+    anthropic_model: str = "claude-opus-5-5"
     api_url: str = "http://localhost:8000"
 
     @field_validator("retriever")
@@ -50,6 +63,20 @@ class Settings(BaseSettings):
                 "(Azure arrives in SPEC-002.)"
             )
         return value
+
+    @model_validator(mode="after")
+    def _cloud_key_present(self) -> Self:
+        """FR-053: a cloud generator needs its API key."""
+        missing = {
+            "openai": ("DOCBOT_OPENAI_API_KEY", self.openai_api_key),
+            "anthropic": ("DOCBOT_ANTHROPIC_API_KEY", self.anthropic_api_key),
+        }.get(self.generator)
+        if missing and not (missing[1] and missing[1].get_secret_value().strip()):
+            raise ValueError(
+                f"DOCBOT_GENERATOR={self.generator} needs an API key. Set {missing[0]} "
+                "in .env (or the provider's standard variable), or use DOCBOT_GENERATOR=extractive."
+            )
+        return self
 
     @property
     def max_upload_bytes(self) -> int:

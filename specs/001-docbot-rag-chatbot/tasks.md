@@ -43,7 +43,7 @@ Conventions: `[P]` = can run in parallel with the other `[P]` tasks in the same 
 
 ## Phase 4b — Optional cloud generators (constitution 1.1.0)
 
-- [ ] T039 [FR-050, FR-053] Settings: `openai` / `anthropic` generator options, API keys as secrets (also read from `OPENAI_API_KEY` / `ANTHROPIC_API_KEY`), model names; missing key fails startup naming the variable
+- [x] T039 [FR-050, FR-053] Settings: `openai` / `anthropic` generator options, API keys as secrets (also read from `OPENAI_API_KEY` / `ANTHROPIC_API_KEY`), model names; missing key fails startup naming the variable
 - [ ] T040 [FR-019, FR-015, FR-016, FR-017] `generator_cloud.py`: `OpenAIGenerator` and `AnthropicGenerator` on the official SDKs, structured output, strict `LlmAnswer` parsing, fallback to extractive on invalid output twice, API errors or refusals
 - [ ] T041 [FR-019, FR-054] Wiring in `deps.py`, client cleanup on shutdown, `/status` `notices` naming the cloud provider; keys never appear in any response
 

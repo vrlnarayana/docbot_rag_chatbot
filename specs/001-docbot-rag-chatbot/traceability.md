@@ -22,6 +22,7 @@ Every functional requirement maps to the tasks that implement it, the source fil
 | FR-016 | T020, T021 | `app/core/services.py`, `app/adapters/generator_ollama.py` | `tests/unit/test_qa_service.py::test_fr_016_no_valid_citations_falls_back_to_extractive`, `tests/unit/test_ollama.py::test_fr_016_invalid_output_twice_falls_back`, `tests/unit/test_ollama.py::test_fr_016_invalid_once_then_valid_uses_llm` | tested |
 | FR-017 | T021 | `app/adapters/generator_ollama.py` | `tests/unit/test_ollama.py::test_fr_017_retries_5xx_then_succeeds`, `tests/unit/test_ollama.py::test_fr_017_gives_up_after_two_retries`, `tests/unit/test_ollama.py::test_fr_017_never_retries_4xx`, `tests/unit/test_ollama.py::test_fr_017_unreachable_ollama_falls_back_with_actionable_reason`, `tests/unit/test_ollama.py::test_fr_017_timeout_is_transient` | tested |
 | FR-018 | T020, T022 | `app/core/services.py`, `app/api/routes/ask.py` | `tests/unit/test_qa_service.py::test_fr_018_empty_library_suggests_samples_without_retrieval`, `tests/api/test_ask.py::test_fr_018_empty_library` | tested |
+| FR-019 | T039 | `app/settings.py` | `tests/unit/test_settings.py::test_fr_019_cloud_generators_are_valid_options` | partial |
 | FR-020 | T004, T007 | `app/core/models.py`, `app/adapters/db.py` | `tests/unit/test_models.py::test_fr_020_document_out_has_listing_fields_and_no_internal_ones`, `tests/unit/test_db.py::test_fr_020_add_get_and_list` | partial |
 | FR-021 | T004, T007 | `app/core/models.py`, `app/adapters/db.py` | `tests/unit/test_models.py::test_fr_021_chunk_out_fields`, `tests/unit/test_db.py::test_fr_021_chunks_in_page_order` | partial |
 | FR-022 | T007, T008 | `app/adapters/db.py`, `app/adapters/file_store.py` | `tests/unit/test_db.py::test_fr_022_delete_removes_document_and_chunks`, `tests/unit/test_file_store.py::test_fr_022_delete_removes_file` | partial |
@@ -31,9 +32,11 @@ Every functional requirement maps to the tasks that implement it, the source fil
 | FR-032 | | | | gap |
 | FR-040 | | | | gap |
 | FR-041 | | | | gap |
-| FR-050 | T001, T002 | `pyproject.toml`, `.env.example`, `app/settings.py` | `tests/unit/test_settings.py::test_fr_050_defaults_match_plan`, `tests/unit/test_settings.py::test_fr_050_reads_env_and_dotenv` | tested |
+| FR-050 | T001, T002, T039 | `pyproject.toml`, `.env.example`, `app/settings.py` | `tests/unit/test_settings.py::test_fr_050_defaults_match_plan`, `tests/unit/test_settings.py::test_fr_050_reads_env_and_dotenv`, `tests/unit/test_settings.py::test_fr_019_provider_standard_key_names_are_accepted` | tested |
 | FR-051 | T009, T017 | `app/api/routes/status.py`, `app/api/deps.py` | `tests/api/test_health_status.py::test_fr_051_status_reports_configuration_and_counts`, `tests/api/test_retriever_wiring.py::test_fr_051_falls_back_to_keyword_when_model_unavailable` | tested |
 | FR-052 | T002, T009 | `app/settings.py`, `app/api/main.py` | `tests/unit/test_settings.py::test_fr_052_unknown_generator_fails_with_valid_options`, `tests/unit/test_settings.py::test_fr_052_unknown_retriever_fails_with_valid_options`, `tests/api/test_health_status.py::test_fr_052_startup_fails_with_clear_message` | tested |
+| FR-053 | T039 | `app/settings.py` | `tests/unit/test_settings.py::test_fr_053_cloud_generator_without_key_fails` | tested |
+| FR-054 | | | | gap |
 | FR-060 | | | | gap |
 | FR-061 | | | | gap |
 | FR-062 | | | | gap |

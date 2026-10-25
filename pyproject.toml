@@ -28,6 +28,9 @@ dependencies = [
     "pillow>=10.3",
     "pyyaml>=6.0",
     "streamlit>=1.36",
+    # optional cloud generators (constitution 1.1.0)
+    "openai>=3.0",
+    "anthropic>=2.3",
 ]
 
 [project.optional-dependencies]
