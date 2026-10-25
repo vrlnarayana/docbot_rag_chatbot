@@ -80,3 +80,13 @@ class LengthRequired(DocBotError):
         super().__init__(
             "Uploads must declare their size (Content-Length header) so the limit can be checked."
         )
+
+
+class EmbeddingUnavailable(DocBotError):
+    code = "embedding_unavailable"
+
+    def __init__(self, reason: str) -> None:
+        super().__init__(
+            f"Embeddings are unavailable: {reason} Nothing was stored. "
+            "Set DOCBOT_EMBEDDER=fastembed to use the local model instead."
+        )

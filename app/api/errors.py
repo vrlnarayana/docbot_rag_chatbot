@@ -20,6 +20,7 @@ STATUS_BY_CODE = {
     "not_found": 404,
     "no_documents": 409,
     "no_golden": 409,
+    "embedding_unavailable": 503,
 }
 
 
