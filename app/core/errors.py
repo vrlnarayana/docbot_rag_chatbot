@@ -86,6 +86,7 @@ class EmbeddingUnavailable(DocBotError):
     code = "embedding_unavailable"
 
     def __init__(self, reason: str) -> None:
+        self.reason = reason
         super().__init__(
             f"Embeddings are unavailable: {reason} Nothing was stored. "
             "Set DOCBOT_EMBEDDER=fastembed to use the local model instead."

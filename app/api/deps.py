@@ -2,6 +2,7 @@
 
 import logging
 from dataclasses import dataclass, field
+from typing import cast
 
 import anthropic
 import anyio
@@ -12,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 
 from app.adapters.db import SqliteDocumentRepository, create_engine_for
 from app.adapters.embedder_fastembed import FastEmbedEmbedder
+from app.adapters.embedder_openai import OpenAIEmbedder
 from app.adapters.extractors import ImageExtractor, OcrEngine, PdfExtractor, TextFileExtractor
 from app.adapters.file_store import LocalFileStore
 from app.adapters.generator_cloud import AnthropicGenerator, OpenAIGenerator
@@ -20,6 +22,7 @@ from app.adapters.generator_ollama import OllamaGenerator
 from app.adapters.retriever_bm25 import Bm25Retriever
 from app.adapters.retriever_vector import VectorRetriever
 from app.core.answerability import AnswerabilityGate
+from app.core.errors import EmbeddingUnavailable
 from app.core.ports import Embedder, Generator, Retriever
 from app.core.services import EvaluationService, IngestionService, QAService
 from app.settings import Settings
@@ -38,21 +41,35 @@ class Container:
     fallbacks: list[str] = field(default_factory=list)
     notices: list[str] = field(default_factory=list)
     llm: OllamaGenerator | OpenAIGenerator | AnthropicGenerator | None = None
+    openai_embedder: OpenAIEmbedder | None = None
 
     async def aclose(self) -> None:
         if self.llm:
             await self.llm.aclose()
+        if self.openai_embedder:
+            self.openai_embedder.close()
         await self.engine.dispose()
 
 
 logger = logging.getLogger("docbot.startup")
+LLM_RETRIES = 2  # FR-017; also used for the OpenAI embedder
 
 
 async def _build_retrieval(settings: Settings) -> tuple[Retriever, Embedder | None, list[str]]:
-    """FR-011 and the edge case in spec §3: no embedding model means keyword retrieval."""
+    """FR-011, FR-055 and the edge case in spec §3: no embedding model means keyword retrieval."""
+    embedder: Embedder
+    if settings.retriever == "vector" and settings.embedder == "openai":
+        assert settings.openai_api_key is not None  # checked by Settings (FR-053)
+        client = openai.OpenAI(
+            api_key=settings.openai_api_key.get_secret_value(),
+            timeout=settings.llm_timeout_s,
+            max_retries=LLM_RETRIES,
+        )
+        embedder = OpenAIEmbedder(client, settings.openai_embed_model)
+        return VectorRetriever(embedder, settings.min_score_vector), embedder, []
     if settings.retriever == "vector":
         try:
-            embedder: Embedder = await anyio.to_thread.run_sync(
+            embedder = await anyio.to_thread.run_sync(
                 FastEmbedEmbedder, settings.embed_model, settings.models_dir
             )
         except Exception as exc:
@@ -62,9 +79,6 @@ async def _build_retrieval(settings: Settings) -> tuple[Retriever, Embedder | No
             return Bm25Retriever(settings.min_score_keyword), None, [reason]
         return VectorRetriever(embedder, settings.min_score_vector), embedder, []
     return Bm25Retriever(settings.min_score_keyword), None, []
-
-
-LLM_RETRIES = 2  # FR-017
 
 
 def _build_llm(
@@ -92,6 +106,16 @@ def _build_llm(
         notice = _cloud_notice("Anthropic", settings.anthropic_model)
         return AnthropicGenerator(anthropic_client, settings.anthropic_model, fallback), [notice]
     return None, []
+
+
+def _embedder_notices(settings: Settings, retriever: Retriever) -> list[str]:
+    if settings.embedder == "openai" and retriever.name == "vector":
+        return [
+            f"Cloud embeddings active: the text of every indexed document and each question "
+            f"is sent to OpenAI ({settings.openai_embed_model}). Set DOCBOT_EMBEDDER=fastembed "
+            "to embed locally."
+        ]
+    return []
 
 
 def _cloud_notice(provider: str, model: str) -> str:
@@ -122,15 +146,25 @@ async def build_container(settings: Settings) -> Container:
         max_pdf_bytes=settings.max_pdf_bytes,
     )
     retriever, embedder, fallbacks = await _build_retrieval(settings)
+    notices: list[str] = []
     gate = AnswerabilityGate()
     ingestion.embedder = embedder
     ingestion.retriever = retriever
     ingestion.gate = gate
-    await ingestion.reembed_stale()
+    try:
+        await ingestion.reembed_stale()
+    except EmbeddingUnavailable as exc:  # FR-056: keep serving with keyword retrieval
+        fallbacks.append(
+            f"OpenAI embeddings unavailable: {exc.reason} Using the keyword retriever."
+        )
+        retriever = Bm25Retriever(settings.min_score_keyword)
+        ingestion.embedder, ingestion.retriever = None, retriever
     await ingestion.refresh_retriever()
+    notices += _embedder_notices(settings, retriever)
 
     extractive = ExtractiveGenerator(gate)
-    llm, notices = _build_llm(settings, extractive)
+    llm, llm_notices = _build_llm(settings, extractive)
+    notices += llm_notices
     generator: Generator = llm or extractive
     qa = QAService(repository, retriever, generator, gate, settings.min_coverage, extractive)
     return Container(
@@ -145,6 +179,7 @@ async def build_container(settings: Settings) -> Container:
         fallbacks=fallbacks,
         notices=notices,
         llm=llm,
+        openai_embedder=cast(OpenAIEmbedder, embedder) if settings.embedder == "openai" else None,
     )
 
 

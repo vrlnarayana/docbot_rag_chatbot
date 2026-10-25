@@ -4,8 +4,13 @@ from fastapi import APIRouter, Depends
 
 from app.api.deps import Container, get_container
 from app.core.models import HealthResponse, StatusResponse
+from app.settings import Settings
 
 router = APIRouter(tags=["status"])
+
+
+def _embed_model(settings: Settings) -> str:
+    return settings.openai_embed_model if settings.embedder == "openai" else settings.embed_model
 
 
 @router.get("/health", response_model=HealthResponse)
@@ -21,7 +26,7 @@ async def status(container: Annotated[Container, Depends(get_container)]) -> Sta
     return StatusResponse(
         retriever=retriever,
         generator=settings.generator,
-        embed_model=settings.embed_model if retriever == "vector" else None,
+        embed_model=_embed_model(settings) if retriever == "vector" else None,
         documents=documents,
         chunks=chunks,
         fallbacks=container.fallbacks,
