@@ -16,7 +16,7 @@ Every functional requirement maps to the tasks that implement it, the source fil
 | FR-010 | T004, T016 | `app/core/models.py`, `app/adapters/retriever_bm25.py` | `tests/unit/test_models.py::test_fr_010_ask_request_rejects_bad_question_length`, `tests/unit/test_models.py::test_fr_010_ask_request_top_k_bounds`, `tests/unit/test_settings.py::test_fr_010_top_k_bounds`, `tests/unit/test_bm25.py::test_fr_010_returns_at_most_k_with_positive_scores` | partial |
 | FR-011 | T016, T017 | `app/adapters/retriever_bm25.py`, `app/core/text.py`, `app/adapters/retriever_vector.py`, `app/adapters/embedder_fastembed.py`, `app/api/deps.py` | `tests/unit/test_bm25.py::test_fr_011_keyword_retriever_ranks_matching_chunk_first`, `tests/unit/test_vector.py::test_fr_011_vector_retriever_ranks_by_cosine`, `tests/api/test_retriever_wiring.py::test_fr_011_vector_retriever_active_when_model_loads` | tested |
 | FR-012 | T018 | `app/core/answerability.py` | `tests/unit/test_answerability.py::test_fr_012_out_of_corpus_terms_are_not_covered`, `tests/unit/test_answerability.py::test_fr_012_ceo_question_is_not_covered`, `tests/unit/test_answerability.py::test_fr_012_unknown_terms_only_gives_zero`, `tests/unit/test_answerability.py::test_fr_012_in_corpus_question_passes` | partial |
-| FR-013 | | | | gap |
+| FR-013 | T019 | `app/adapters/generator_extractive.py` | `tests/unit/test_extractive.py::test_fr_013_table_header_and_value_row_come_back_together`, `tests/unit/test_extractive.py::test_fr_013_cites_the_chunk_the_window_came_from` | partial |
 | FR-014 | T004 | `app/core/models.py` | `tests/unit/test_models.py::test_fr_014_citation_out_fields` | partial |
 | FR-015 | | | | gap |
 | FR-016 | | | | gap |

@@ -36,7 +36,7 @@ Conventions: `[P]` = can run in parallel with the other `[P]` tasks in the same 
 - [x] T016 [P] [FR-010, FR-011] `Bm25Retriever` (`rank-bm25`, same tokenizer as the answerability gate, refresh on change)
 - [x] T017 [P] [FR-011, FR-051] `FastEmbedEmbedder` (worker thread, model cached in `data/models`) and `VectorRetriever` (NumPy cosine over a cached matrix; re-embed chunks whose `embed_model` differs); if the model cannot be loaded at startup, fall back to keyword and report it in `/status` `fallbacks`
 - [x] T018 [P] [FR-012] `app/core/answerability.py`: tokenizer + IDF-weighted coverage gate (plan §7.2 step 4)
-- [ ] T019 [P] [FR-013] `ExtractiveGenerator`: best 3-line window by IDF-weighted overlap, tie-breaks per plan §7.4, ends with its citation marker
+- [x] T019 [P] [FR-013] `ExtractiveGenerator`: best 3-line window by IDF-weighted overlap, tie-breaks per plan §7.4, ends with its citation marker
 - [ ] T020 [FR-010, FR-012, FR-013, FR-014, FR-015, FR-018] `QAService.ask` (core): empty-library message, top-k retrieval, score gate, coverage gate, generation, citation validation, `CitationOut` numbered by first use
 - [ ] T021 [FR-015, FR-016, FR-017] `OllamaGenerator`: `httpx` + `tenacity` (2 retries on connection errors, timeouts and 5xx with exponential jitter; no retry on 4xx), `LlmAnswer` strict parsing, fallback to extractive with `fallback_reason`
 - [ ] T022 [FR-010…FR-018] `POST /ask` with `AskRequest` validation (question 3–1000 chars, `top_k` 1–10) and `AskResponse`
