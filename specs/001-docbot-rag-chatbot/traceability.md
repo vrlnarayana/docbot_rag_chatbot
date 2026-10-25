@@ -39,3 +39,9 @@ Every functional requirement maps to the tasks that implement it, the source fil
 | FR-062 | | | | gap |
 | FR-063 | | | | gap |
 | FR-064 | | | | gap |
+
+## Constitution and non-functional checks
+
+| Rule | Tasks | Source files | Tests |
+|---|---|---|---|
+| VII.3 structured request logs, no document text | T003 | `app/api/logging.py` | `tests/api/test_logging.py::test_one_structured_line_per_request` |
