@@ -4,8 +4,8 @@ Every functional requirement maps to the tasks that implement it, the source fil
 
 | FR | Tasks | Source files | Tests | Status |
 |---|---|---|---|---|
-| FR-001 | | | | gap |
-| FR-002 | | | | gap |
+| FR-001 | T005 | `app/core/errors.py` | `tests/unit/test_errors.py::test_fr_001_supported_extensions` | partial |
+| FR-002 | T005 | `app/core/errors.py` | `tests/unit/test_errors.py::test_fr_002_unsupported_type_message_lists_supported_types` | partial |
 | FR-003 | | | | gap |
 | FR-004 | | | | gap |
 | FR-005 | | | | gap |

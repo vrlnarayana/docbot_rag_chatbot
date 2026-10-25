@@ -54,6 +54,15 @@ class Chunk(_Strict):
     text: str
 
 
+class IndexedChunk(_Strict):
+    """A chunk as the retrievers see it: with its file name and optional embedding."""
+
+    chunk: Chunk
+    filename: str
+    embedding: list[float] | None = None
+    embed_model: str | None = None
+
+
 class RetrievedChunk(_Strict):
     chunk: Chunk
     filename: str
