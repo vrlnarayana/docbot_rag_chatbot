@@ -1,0 +1,85 @@
+# DocBot Constitution
+
+These rules apply to every spec, plan, task and line of code in this repository. If a plan or task conflicts with them, the constitution wins. Change it only by an explicit, versioned amendment at the bottom of this file.
+
+**Version** 1.0.0 · **Ratified** 2026-10-25
+
+---
+
+## Article I — The spec is the source of truth
+1. Code exists to satisfy `specs/<id>/spec.md`. When behaviour and spec disagree, fix the code, or amend the spec first and then the code.
+2. Every functional requirement (FR-xxx) has at least one automated test, named `test_fr_xxx_<what_it_checks>`.
+3. Every task in `tasks.md` names the requirement(s) it implements, e.g. `T014 [FR-012]`.
+4. Commit messages start with the task id: `T014: refuse below score threshold`.
+5. `specs/<id>/traceability.md` maps every FR to its tasks, source files and tests. It is updated whenever a task is completed. A requirement with no test is a gap and blocks "done".
+6. Do not guess. Anything the spec leaves open is marked `[NEEDS CLARIFICATION]` and raised before it is built.
+
+## Article II — Technology stack
+| Concern | Choice |
+|---|---|
+| Language | Python 3.11–3.13, full type hints |
+| API | FastAPI + Uvicorn |
+| Models / validation | Pydantic v2; strict mode for anything coming from an LLM, a file or a request |
+| Settings | `pydantic-settings`, `.env` file |
+| Database | SQLite through SQLAlchemy 2.x async + `aiosqlite` |
+| PDF text | `pypdf` |
+| PDF page rendering (for OCR) | `pypdfium2` |
+| OCR | `rapidocr-onnxruntime` (models ship inside the package; works offline) |
+| Embeddings | `fastembed` with `BAAI/bge-small-en-v1.5` (ONNX; no PyTorch) |
+| Keyword search | `rank-bm25` |
+| Local LLM (optional) | Ollama over its HTTP API, called with `httpx` |
+| Retries | `tenacity` |
+| Sample documents | `reportlab` (PDF), `Pillow` (images and the scanned PDF) |
+| UI | Streamlit, calling the API with `httpx` |
+| Tests / quality | `pytest`, `pytest-asyncio`, `ruff`, `mypy --strict` on `app/core` |
+
+Do not add a dependency outside this table without amending the constitution. No Docker, no database server, no vector-database server.
+
+## Article III — Architecture: the core stays pure
+Follow a ports-and-adapters layout. Dependencies point inward.
+
+```
+app/core/       pure Python: models, ports (Protocols), services. No FastAPI, no SQL, no SDKs, no file I/O.
+app/adapters/   implementations of the ports: SQLite repository, extractors, OCR, retrievers, generators.
+app/api/        FastAPI routes and dependency wiring. FastAPI is an adapter too.
+ui/             Streamlit app. Talks only to the API over HTTP.
+```
+
+The ten-point harness is mandatory:
+1. Every function boundary has type hints.
+2. Every LLM output is parsed into a Pydantic v2 **strict** model (`extra="forbid"`) before use.
+3. All I/O in request paths is async. CPU-heavy work (OCR, embedding, PDF rendering) runs in a worker thread (`anyio.to_thread.run_sync`), never inline in the event loop.
+4. Every LLM call goes through one typed client wrapper with a timeout, retries with exponential backoff and jitter on transient errors only, and a fallback.
+5. Each provider (generator, retriever, extractor, storage) sits behind a port the core owns. The adapter is chosen once, at startup.
+6. Any argument coming from a model is validated before it is used. For example, citation numbers must refer to chunks that were actually supplied.
+7. Destructive actions are bounded: delete exactly one document by id; no bulk delete over the API; the UI confirms before deleting.
+8. Every endpoint declares a request model (where it takes a body) and a `response_model`. Never return raw dicts or ORM objects.
+9. Tests assert contracts, not exact wording. Unit tests never call a real LLM or the network.
+10. `app/core` imports nothing from `fastapi`, `sqlalchemy`, `sqlite3`, `httpx`, `fastembed`, `rapidocr_onnxruntime`, `pypdf` or `pypdfium2`.
+
+## Article IV — Local-first and data safety
+1. No cloud services in SPEC-001. The only network calls allowed at runtime are to Ollama on `localhost` (optional) and the one-time embedding-model download.
+2. Sample data is synthetic: company "Demo Motors", model "Velo 125". No real company names, people or documents.
+3. Uploaded files are stored under generated names inside the configured storage folder. User-supplied file names are never used as paths.
+4. API responses never include raw prompts, absolute file paths or stack traces.
+
+## Article V — Testing discipline
+1. Write or update the test for a requirement in the same task that implements it.
+2. Tests use a temporary database and storage folder, the **keyword** retriever and a **fake** generator, so they are fast and deterministic and need no model downloads.
+3. One end-to-end test ingests the generated sample corpus and asserts SC-003, SC-004 and SC-005.
+4. `pytest`, `ruff check` and `mypy --strict app/core` must all pass before a task is marked done.
+
+## Article VI — Simplicity
+1. Build only what the spec asks for. Note good ideas in `specs/<id>/ideas.md`; do not build them.
+2. Prefer the standard library and the stack above over new abstractions.
+3. Two processes to run the app: the API and the UI. Ollama is optional and separate.
+
+## Article VII — Developer experience
+1. The README lets a newcomer go from clone to a cited answer in under 10 minutes.
+2. Errors tell the user what to do next, e.g. "Ollama not reachable at http://localhost:11434 — start it with `ollama serve` or set DOCBOT_GENERATOR=extractive".
+3. Logs are structured, one line per request, with a request id. Document text is not written to logs.
+
+---
+
+## Amendments
+_None yet._
