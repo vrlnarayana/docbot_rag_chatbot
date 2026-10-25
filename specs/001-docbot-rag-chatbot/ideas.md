@@ -5,3 +5,7 @@
 - **Layout-mode text amplification.** `pypdf` layout extraction can produce very large strings for pages with extreme coordinates. Consider capping the extracted text per page, or falling back to plain extraction mode above a size limit.
 - **Extraction time budget.** One slow upload holds the OCR lock and blocks other uploads. Consider a timeout or a separate worker process for extraction.
 - **Open the pdfium document once per extraction**, not once per scanned page.
+
+## Retrieval and answer quality (found while building US-3, 2026-10-25)
+- **OCR drops word spaces.** RapidOCR's bundled model (Chinese/English PP-OCR) often merges English words ("Lowbeamwattage"). The samples work around this with wide word gaps, but real scans with normal spacing will index merged tokens, which weakens keyword retrieval and the answerability gate. Options: an English recognition model (needs a one-time download), or splitting merged tokens against a vocabulary.
+- **The extractive generator picks the line block with the most question words**, not the block that answers. Prose that repeats the question's terms can beat the table row with the value. An LLM generator (Ollama, OpenAI, Claude) handles this better; a cheap improvement would be to favour blocks containing numbers or units for "what is the value" questions.
