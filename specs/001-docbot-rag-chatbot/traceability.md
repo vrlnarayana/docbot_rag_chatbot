@@ -48,3 +48,4 @@ Every functional requirement maps to the tasks that implement it, the source fil
 | III.10 `app/core` imports no infrastructure libraries | T006 | `app/core/` | `tests/unit/test_architecture.py::test_core_imports_no_banned_modules`, `::test_core_does_not_import_adapters_or_api` |
 | IV.3 uploads stored under generated names, never user names | T008 | `app/adapters/file_store.py` | `tests/unit/test_file_store.py::test_saves_under_generated_name_inside_folder`, `::test_rejects_unsafe_extensions`, `::test_delete_refuses_names_outside_folder` |
 | NFR-006 no paths or stack traces in responses | T009 | `app/api/errors.py` | `tests/api/test_health_status.py::test_nfr_006_unexpected_errors_hide_details`, `::test_domain_errors_become_error_response`, `::test_validation_errors_use_error_shape` |
+| Image decoding limited to PNG/JPEG and bounded size (security review) | T012 | `app/adapters/extractors.py` | `tests/unit/test_extract_safety.py` |

@@ -51,12 +51,20 @@ def _reading_order(result: list[Any]) -> str:
     return "\n".join(" ".join(t for *_, t in sorted(row, key=lambda b: b[2])) for row in rows)
 
 
+MAX_IMAGE_SIDE = 10_000
+MAX_IMAGE_PIXELS = 40_000_000
+
+
 def _open_image(data: bytes) -> Image.Image:
+    """Decode PNG or JPEG only, and check the size before decoding the pixels."""
     try:
-        image = Image.open(io.BytesIO(data))
+        image = Image.open(io.BytesIO(data), formats=["PNG", "JPEG"])
+        width, height = image.size
+        if max(width, height) > MAX_IMAGE_SIDE or width * height > MAX_IMAGE_PIXELS:
+            raise ExtractionFailed(f"image is too large; the limit is {MAX_IMAGE_SIDE} px a side")
         image.load()
-    except (UnidentifiedImageError, OSError) as exc:
-        raise ExtractionFailed("not a readable image") from exc
+    except (UnidentifiedImageError, Image.DecompressionBombError, OSError) as exc:
+        raise ExtractionFailed("not a readable PNG or JPEG image") from exc
     return image
 
 
@@ -129,7 +137,10 @@ class PdfExtractor:
         with _PDFIUM_LOCK:
             pdf = pdfium.PdfDocument(data)
             try:
-                image: Image.Image = pdf[index].render(scale=_OCR_DPI / 72).to_pil()
+                page = pdf[index]
+                longest_pt = max(page.get_size())
+                scale = min(_OCR_DPI / 72, MAX_IMAGE_SIDE / longest_pt)
+                image: Image.Image = page.render(scale=scale).to_pil()
             finally:
                 pdf.close()
         return image
