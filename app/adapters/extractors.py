@@ -4,12 +4,14 @@ All extractors are blocking; the ingestion service calls them in a worker thread
 """
 
 import io
+import re
 import threading
 from typing import Any
 
 import numpy as np
 from PIL import Image, UnidentifiedImageError
 
+from app.core.chunking import MIN_CHUNK_CHARS
 from app.core.errors import ExtractionFailed
 from app.core.models import Page
 
@@ -77,3 +79,57 @@ class ImageExtractor:
 
     def extract(self, data: bytes, extension: str) -> list[Page]:
         return [Page(number=1, text=self._ocr.read(_open_image(data)), source="ocr")]
+
+
+_PDFIUM_LOCK = threading.Lock()  # pdfium is not thread-safe
+_COLUMN_GAP = re.compile(r" {2,}")
+_OCR_DPI = 200
+
+
+def _tidy_layout_text(text: str) -> str:
+    """Keep table rows on one line, with ' | ' between columns (plan §7.1)."""
+    lines = [_COLUMN_GAP.sub(" | ", line.strip()) for line in text.splitlines()]
+    return re.sub(r"\n{3,}", "\n\n", "\n".join(lines)).strip()
+
+
+class PdfExtractor:
+    """FR-001, FR-004: text layer per page; pages with almost no text are rendered and OCR'd."""
+
+    def __init__(self, ocr: OcrEngine) -> None:
+        self._ocr = ocr
+
+    def extract(self, data: bytes, extension: str) -> list[Page]:
+        from pypdf import PdfReader
+
+        try:
+            reader = PdfReader(io.BytesIO(data))
+            if reader.is_encrypted:
+                raise ExtractionFailed("the PDF is encrypted")
+            texts = [
+                _tidy_layout_text(p.extract_text(extraction_mode="layout")) for p in reader.pages
+            ]
+        except ExtractionFailed:
+            raise
+        except Exception as exc:  # pypdf raises many types for damaged files
+            raise ExtractionFailed("not a valid PDF") from exc
+
+        pages: list[Page] = []
+        for number, text in enumerate(texts, start=1):
+            if len(text) >= MIN_CHUNK_CHARS:
+                pages.append(Page(number=number, text=text, source="text"))
+            else:
+                ocr_text = self._ocr.read(self._render(data, number - 1))
+                pages.append(Page(number=number, text=ocr_text, source="ocr"))
+        return pages
+
+    @staticmethod
+    def _render(data: bytes, index: int) -> Image.Image:
+        import pypdfium2 as pdfium
+
+        with _PDFIUM_LOCK:
+            pdf = pdfium.PdfDocument(data)
+            try:
+                image: Image.Image = pdf[index].render(scale=_OCR_DPI / 72).to_pil()
+            finally:
+                pdf.close()
+        return image

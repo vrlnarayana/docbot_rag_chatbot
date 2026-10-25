@@ -4,10 +4,10 @@ Every functional requirement maps to the tasks that implement it, the source fil
 
 | FR | Tasks | Source files | Tests | Status |
 |---|---|---|---|---|
-| FR-001 | T005 | `app/core/errors.py` | `tests/unit/test_errors.py::test_fr_001_supported_extensions` | partial |
+| FR-001 | T005, T013 | `app/core/errors.py`, `app/adapters/extractors.py` | `tests/unit/test_errors.py::test_fr_001_supported_extensions`, `tests/unit/test_extract_pdf.py::test_fr_001_text_pdf_pages`, `tests/unit/test_extract_pdf.py::test_fr_001_table_rows_stay_on_one_line` | partial |
 | FR-002 | T005 | `app/core/errors.py` | `tests/unit/test_errors.py::test_fr_002_unsupported_type_message_lists_supported_types` | partial |
 | FR-003 | | | | gap |
-| FR-004 | | | | gap |
+| FR-004 | T013 | `app/adapters/extractors.py` | `tests/unit/test_extract_pdf.py::test_fr_004_page_without_text_layer_is_ocrd` | tested |
 | FR-005 | T012 | `app/adapters/extractors.py` | `tests/unit/test_extract_image.py::test_fr_005_png_text_is_ocr_page_one`, `tests/unit/test_extract_image.py::test_fr_005_jpg_supported` | tested |
 | FR-006 | T011 | `app/adapters/extractors.py` | `tests/unit/test_extract_text.py::test_fr_006_utf8_text_is_page_one`, `tests/unit/test_extract_text.py::test_fr_006_falls_back_to_latin1` | tested |
 | FR-007 | T010 | `app/core/chunking.py` | `tests/unit/test_chunking.py::test_fr_007_chunks_never_exceed_size`, `tests/unit/test_chunking.py::test_fr_007_consecutive_chunks_overlap`, `tests/unit/test_chunking.py::test_fr_007_prefers_paragraph_breaks`, `tests/unit/test_chunking.py::test_fr_007_prefers_line_breaks_over_spaces`, `tests/unit/test_chunking.py::test_fr_007_never_crosses_pages_and_keeps_source`, `tests/unit/test_chunking.py::test_fr_007_drops_tiny_chunks_unless_only_text`, `tests/unit/test_chunking.py::test_fr_007_no_text_is_lost`, `tests/unit/test_chunking.py::test_fr_007_short_text_is_one_chunk` | tested |
