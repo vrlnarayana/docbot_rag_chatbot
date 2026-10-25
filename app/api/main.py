@@ -10,7 +10,7 @@ from pydantic import ValidationError
 from app.api.deps import build_container
 from app.api.errors import add_error_handlers
 from app.api.logging import add_request_logging
-from app.api.routes import ask, documents, status
+from app.api.routes import ask, documents, samples, status
 from app.settings import Settings
 
 
@@ -40,6 +40,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(status.router)
     app.include_router(documents.router)
     app.include_router(ask.router)
+    app.include_router(samples.router)
     return app
 
 

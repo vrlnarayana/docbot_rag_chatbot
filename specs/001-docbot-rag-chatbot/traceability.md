@@ -27,8 +27,8 @@ Every functional requirement maps to the tasks that implement it, the source fil
 | FR-021 | T004, T007 | `app/core/models.py`, `app/adapters/db.py` | `tests/unit/test_models.py::test_fr_021_chunk_out_fields`, `tests/unit/test_db.py::test_fr_021_chunks_in_page_order` | partial |
 | FR-022 | T007, T008 | `app/adapters/db.py`, `app/adapters/file_store.py` | `tests/unit/test_db.py::test_fr_022_delete_removes_document_and_chunks`, `tests/unit/test_file_store.py::test_fr_022_delete_removes_file` | partial |
 | FR-023 | | | | gap |
-| FR-030 | T023 | `app/adapters/samples.py` | `tests/unit/test_samples.py::test_fr_030_generates_the_eight_files_and_golden_set`, `tests/unit/test_samples.py::test_fr_030_output_is_deterministic` | partial |
-| FR-031 | | | | gap |
+| FR-030 | T023, T024 | `app/adapters/samples.py`, `app/api/routes/samples.py`, `scripts/generate_samples.py` | `tests/unit/test_samples.py::test_fr_030_generates_the_eight_files_and_golden_set`, `tests/unit/test_samples.py::test_fr_030_output_is_deterministic`, `tests/api/test_samples_api.py::test_fr_030_generate_endpoint_writes_files`, `tests/api/test_samples_api.py::test_fr_030_generate_script` | tested |
+| FR-031 | T024 | `app/api/routes/samples.py` | `tests/api/test_samples_api.py::test_fr_031_load_generates_if_missing_then_reports_duplicates`, `tests/api/test_samples_api.py::test_fr_031_unreadable_file_is_reported_not_fatal` | tested |
 | FR-032 | T023 | `app/adapters/samples.py` | `tests/unit/test_samples.py::test_fr_032_content_is_fictional_and_avoids_the_refusal_topics` | tested |
 | FR-040 | | | | gap |
 | FR-041 | | | | gap |

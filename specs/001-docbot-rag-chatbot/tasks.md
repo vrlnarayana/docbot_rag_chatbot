@@ -50,7 +50,7 @@ Conventions: `[P]` = can run in parallel with the other `[P]` tasks in the same 
 ## Phase 5 — US-3 Generate and load the sample corpus (P2)
 
 - [x] T023 [FR-030, FR-032] `app/adapters/samples.py`: deterministic generator for the 8 files of spec §8 and `eval/golden.yaml` (12 cases)
-- [ ] T024 [FR-030, FR-031] `scripts/generate_samples.py`, `POST /samples/generate`, `POST /samples/load` (generate if missing; report indexed, duplicates, failed)
+- [x] T024 [FR-030, FR-031] `scripts/generate_samples.py`, `POST /samples/generate`, `POST /samples/load` (generate if missing; report indexed, duplicates, failed)
 
 ## Phase 6 — US-4 Manage documents (P2)
 
