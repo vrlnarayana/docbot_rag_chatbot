@@ -31,9 +31,9 @@ Every functional requirement maps to the tasks that implement it, the source fil
 | FR-032 | | | | gap |
 | FR-040 | | | | gap |
 | FR-041 | | | | gap |
-| FR-050 | T001 | `pyproject.toml`, `.env.example` |  | in progress |
+| FR-050 | T001, T002 | `pyproject.toml`, `.env.example`, `app/settings.py` | `tests/unit/test_settings.py::test_fr_050_defaults_match_plan`, `tests/unit/test_settings.py::test_fr_050_reads_env_and_dotenv` | tested |
 | FR-051 | | | | gap |
-| FR-052 | | | | gap |
+| FR-052 | T002 | `app/settings.py` | `tests/unit/test_settings.py::test_fr_052_unknown_generator_fails_with_valid_options`, `tests/unit/test_settings.py::test_fr_052_unknown_retriever_fails_with_valid_options` | partial (startup wiring in T009) |
 | FR-060 | | | | gap |
 | FR-061 | | | | gap |
 | FR-062 | | | | gap |
