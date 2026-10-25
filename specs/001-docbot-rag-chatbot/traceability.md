@@ -38,10 +38,10 @@ Every functional requirement maps to the tasks that implement it, the source fil
 | FR-053 | T039 | `app/settings.py` | `tests/unit/test_settings.py::test_fr_053_cloud_generator_without_key_fails` | tested |
 | FR-054 | T041 | `app/api/deps.py`, `app/api/routes/status.py` | `tests/api/test_cloud_wiring.py::test_fr_054_cloud_generator_is_wired_and_announced`, `tests/api/test_cloud_wiring.py::test_fr_054_local_setup_has_no_cloud_notice` | partial |
 | FR-060 | | | | gap |
-| FR-061 | | | | gap |
+| FR-061 | T030 | `ui/api_client.py` | `tests/unit/test_api_client.py::test_fr_061_ask_goes_over_http`, `tests/unit/test_api_client.py::test_fr_061_ui_imports_nothing_from_the_backend` | tested |
 | FR-062 | | | | gap |
 | FR-063 | | | | gap |
-| FR-064 | | | | gap |
+| FR-064 | T030 | `ui/api_client.py` | `tests/unit/test_api_client.py::test_fr_064_unreachable_api_raises_api_unavailable` | partial |
 
 ## Constitution and non-functional checks
 
