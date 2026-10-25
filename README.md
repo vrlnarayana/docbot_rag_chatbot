@@ -1,9 +1,80 @@
-# DocBot spec pack — trainer guide
+# DocBot
 
-A ready-to-build specification for **DocBot**, a local RAG chatbot over PDFs, images and text files. You give this folder to Claude Code, and it builds the app from the spec while learners watch the Spec-Driven Development workflow: constitution → spec → plan → tasks → implement → verify.
+A local chatbot over your PDFs, images and text files. Ask a question in plain English; every answer cites the document and page it came from, and DocBot says so when the documents do not contain the answer.
+
+- **Runs on your laptop:** FastAPI + SQLite + Streamlit, local OCR and embeddings. No Docker, no database server.
+- **Answers:** quoted from the documents by default (no LLM). Optionally written by a local LLM (Ollama) or, with your own API key, by OpenAI or Claude.
+- **Built with Spec-Driven Development:** the [constitution](.specify/memory/constitution.md), [spec](specs/001-docbot-rag-chatbot/spec.md), [plan](specs/001-docbot-rag-chatbot/plan.md), [tasks](specs/001-docbot-rag-chatbot/tasks.md) and [traceability](specs/001-docbot-rag-chatbot/traceability.md) are in `specs/`.
+
+## Quick start (about 10 minutes)
+
+You need **Python 3.11, 3.12 or 3.13** (`python3 --version`; on macOS you may need `python3.12`) and Git.
+
+```bash
+git clone <this repository> docbot && cd docbot
+python3.12 -m venv .venv && source .venv/bin/activate     # Windows: .venv\Scripts\activate
+pip install -e ".[dev]"
+```
+
+Start the API in one terminal and the UI in a second one (activate `.venv` in both):
+
+```bash
+uvicorn app.api.main:app --port 8000     # first start downloads the ~70 MB embedding model
+streamlit run ui/Home.py                 # opens http://localhost:8501
+```
+
+In the browser:
+
+1. Open **Documents** and click **Generate & load sample documents**. Eight fictional "Demo Motors" files are created and indexed, including a scanned certificate and two images that are read with OCR.
+2. Open **Chat** and ask *"What is the minimum thickness of the front brake disc?"* The answer quotes the table row and cites `DM-STD-BRK-001…pdf · p. 2`. Expand the citation to see the passage.
+3. Ask *"What is the top speed of the Velo 125?"* DocBot answers *"I couldn't find this in the uploaded documents."*, because no document says.
+4. Open **Evaluate** and click **Run evaluation** to score all 12 golden questions.
+
+You can also upload your own PDF, PNG, JPG, TXT or MD files on the Documents page (PDFs up to 1 MB, other files up to 20 MB). The API is documented at http://localhost:8000/docs.
+
+## Configuration
+
+Copy `.env.example` to `.env` and restart the API after a change. The most useful settings:
+
+| Setting | Default | What it does |
+|---|---|---|
+| `DOCBOT_RETRIEVER` | `vector` | `keyword` uses BM25 and needs no model download |
+| `DOCBOT_GENERATOR` | `extractive` | `ollama` (local LLM), `openai` or `anthropic` (cloud, your own key) |
+| `DOCBOT_OPENAI_API_KEY` / `DOCBOT_ANTHROPIC_API_KEY` | — | Required for the cloud generators; `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` also work |
+| `DOCBOT_MIN_COVERAGE` | `0.55` | Raise it if out-of-scope questions get answered |
+| `DOCBOT_MAX_PDF_MB` / `DOCBOT_MAX_UPLOAD_MB` | `1` / `20` | Upload limits |
+
+With `openai` or `anthropic`, each question and the passages retrieved for it are sent to that provider; the Status page and the chat sidebar say so. Every other setting keeps your documents on this machine. An unknown value (for example `DOCBOT_GENERATOR=azure_openai`) stops the API at startup with a message listing the valid options.
+
+## Development
+
+```bash
+pytest && ruff check . && mypy --strict app/core      # the quality gate; must pass before a task is done
+pytest tests/unit/test_chunking.py                    # one file
+pytest -k fr_012                                      # every test for one requirement
+python scripts/generate_samples.py                    # regenerate sample_data/ and eval/golden.yaml
+python scripts/reset_demo.py                          # delete data/ (asks you to type RESET)
+```
+
+Tests never call the network or an LLM: they use the keyword retriever, a fake generator and stand-in API clients. `app/core` holds the pure business logic; everything that touches files, the database, OCR, models or HTTP is an adapter in `app/adapters` or `app/api`.
+
+### Troubleshooting
+
+| Symptom | Fix |
+|---|---|
+| `uvicorn` exits with "invalid configuration" | Read the message: it names the setting and the valid values |
+| The embedding model will not download (proxy, offline) | Set `DOCBOT_RETRIEVER=keyword`; the Status page also shows when the API fell back to it |
+| `ImportError: Library not loaded … cv2 … .dylib` | Antivirus software can quarantine OpenCV's bundled libraries. Exclude `.venv/` (and your pip or uv cache), then reinstall: `pip install --force-reinstall --no-cache-dir opencv-python` |
+| The UI shows "DocBot API not reachable" | Start the API, or set `DOCBOT_API_URL` in `.env` |
+
+---
+
+# Trainer guide
+
+A ready-to-build specification for **DocBot**. You give the spec pack to Claude Code, and it builds the app from the spec while learners watch the Spec-Driven Development workflow: constitution → spec → plan → tasks → implement → verify.
 
 - **Stack:** FastAPI · SQLite · Streamlit · local OCR and embeddings · optional Ollama
-- **Cloud:** none. Azure arrives later as SPEC-002, through new adapters only.
+- **Cloud:** none by default. OpenAI and Claude are optional (constitution 1.1.0); Azure arrives later as SPEC-002, through new adapters only.
 - **Data:** a synthetic corpus ("Demo Motors", model "Velo 125") that the app generates itself
 
 ## What's in the pack
@@ -14,7 +85,7 @@ A ready-to-build specification for **DocBot**, a local RAG chatbot over PDFs, im
 | `specs/001-docbot-rag-chatbot/spec.md` | **What and why**: 5 user stories, 35 EARS requirements, success criteria, sample corpus, golden questions | Product / domain owner |
 | `specs/001-docbot-rag-chatbot/plan.md` | **How**: architecture, data model, API contract, algorithms, test plan | Agent, reviewed by an engineer |
 | `CLAUDE.md` | Claude Code's project memory: reading order, way of working, guardrails | Team |
-| `tasks.md`, `traceability.md` | *Not included.* The agent generates them; that is part of the demo. | Agent |
+| `tasks.md`, `traceability.md` | Generated by the agent; that is part of the demo. In this repository they are filled in. | Agent |
 
 ## Prerequisites
 - Python 3.11–3.13 and Git
@@ -81,7 +152,7 @@ Command names vary between Spec Kit versions; older releases use `/specify`, `/p
 | 2:15 | Run the evaluation with vector, then keyword retrieval | RAG quality is measured, not eyeballed |
 | 2:25 | Open `traceability.md` | Every requirement maps to tasks, code and a passing test |
 
-### Good moments to pause
+## Good moments to pause
 - **Change the spec live.** Edit FR-007 to 400-character chunks, regenerate the affected task, re-run the evaluation, and discuss the result. This is the "edit the spec, not the code" lesson.
 - **Break the contract on purpose.** Set `DOCBOT_GENERATOR=azure_openai` and start the API; FR-052 stops it with a clear message. That is the hook into SPEC-002.
 - **Turn on Ollama.** Set `DOCBOT_GENERATOR=ollama`; the same questions now get written answers with the same citations, and the same refusal rules.
