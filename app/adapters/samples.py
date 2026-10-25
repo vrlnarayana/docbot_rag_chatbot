@@ -42,13 +42,12 @@ BRAKE_PAGES: list[list[Block]] = [
     ],
     [
         "2. Brake disc specifications",
-        "The minimum thickness is the wear limit of the brake disc. Replace the disc when it "
-        "is worn below this value.",
         [
             ["Position", "Disc diameter", "Minimum thickness"],
             ["Front", "276 mm", "3.5 mm"],
             ["Rear", "220 mm", "4.0 mm"],
         ],
+        "Replace a disc that is worn below its minimum thickness.",
     ],
     [
         "3. Brake fluid",
