@@ -6,7 +6,7 @@ from starlette.datastructures import UploadFile
 
 from app.api.deps import Container, get_container
 from app.core.errors import DocumentNotFound, FileTooLarge, LengthRequired
-from app.core.models import ChunkOut, DocumentOut, ErrorResponse, UploadResponse
+from app.core.models import ChunkOut, DeleteResponse, DocumentOut, ErrorResponse, UploadResponse
 
 router = APIRouter(tags=["documents"])
 
@@ -103,9 +103,7 @@ async def get_document(
     return DocumentOut.from_document(document)
 
 
-@router.get(
-    "/documents/{document_id}/chunks", response_model=list[ChunkOut], responses=_NOT_FOUND
-)
+@router.get("/documents/{document_id}/chunks", response_model=list[ChunkOut], responses=_NOT_FOUND)
 async def get_chunks(
     document_id: str, container: Annotated[Container, Depends(get_container)]
 ) -> list[ChunkOut]:
@@ -113,3 +111,12 @@ async def get_chunks(
     if await container.repository.get(document_id) is None:
         raise DocumentNotFound(document_id)
     return [ChunkOut.from_chunk(c) for c in await container.repository.chunks(document_id)]
+
+
+@router.delete("/documents/{document_id}", response_model=DeleteResponse, responses=_NOT_FOUND)
+async def delete_document(
+    document_id: str, container: Annotated[Container, Depends(get_container)]
+) -> DeleteResponse:
+    """FR-022, FR-023: delete exactly one document by id. There is no bulk delete."""
+    document = await container.ingestion.delete(document_id)
+    return DeleteResponse(deleted_id=document.id)

@@ -11,7 +11,7 @@ import anyio
 
 from app.core.answerability import AnswerabilityGate
 from app.core.chunking import chunk_pages
-from app.core.errors import FileTooLarge, NoTextExtracted, UnsupportedFileType
+from app.core.errors import DocumentNotFound, FileTooLarge, NoTextExtracted, UnsupportedFileType
 from app.core.models import (
     AskResponse,
     Chunk,
@@ -153,6 +153,15 @@ class IngestionService:
             raise
         await self.refresh_retriever()
         return document, False
+
+    async def delete(self, document_id: str) -> Document:
+        """FR-022: remove one document; its chunks and embeddings go in the same transaction."""
+        document = await self._repo.delete(document_id)
+        if document is None:
+            raise DocumentNotFound(document_id)
+        await self._files.delete(document.stored_name)
+        await self.refresh_retriever()
+        return document
 
     async def reembed_stale(self) -> int:
         """Embed chunks that have no embedding, or one from a different model. Returns the count."""
