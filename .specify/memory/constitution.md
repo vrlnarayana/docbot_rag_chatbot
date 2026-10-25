@@ -2,7 +2,7 @@
 
 These rules apply to every spec, plan, task and line of code in this repository. If a plan or task conflicts with them, the constitution wins. Change it only by an explicit, versioned amendment at the bottom of this file.
 
-**Version** 1.1.0 · **Ratified** 2026-10-25 · **Last amended** 2026-10-25
+**Version** 1.2.0 · **Ratified** 2026-10-25 · **Last amended** 2026-10-25
 
 ---
 
@@ -29,6 +29,7 @@ These rules apply to every spec, plan, task and line of code in this repository.
 | Keyword search | `rank-bm25` |
 | Local LLM (optional) | Ollama over its HTTP API, called with `httpx` |
 | Cloud LLMs (optional, opt-in) | `openai` SDK for OpenAI, `anthropic` SDK for Claude; each used only when selected and given the user's own API key |
+| Cloud embeddings (optional, opt-in) | `openai` SDK (OpenAI embeddings API), only when selected and given the user's own API key |
 | Retries | `tenacity` |
 | Sample documents | `reportlab` (PDF), `Pillow` (images and the scanned PDF) |
 | UI | Streamlit, calling the API with `httpx` |
@@ -59,7 +60,7 @@ The ten-point harness is mandatory:
 10. `app/core` imports nothing from `fastapi`, `sqlalchemy`, `sqlite3`, `httpx`, `fastembed`, `rapidocr_onnxruntime`, `pypdf` or `pypdfium2`.
 
 ## Article IV — Local-first and data safety
-1. No cloud services by default. The only network calls allowed at runtime are to Ollama on `localhost` (optional), the one-time embedding-model download, and the API of a cloud generator (OpenAI or Anthropic) **only** when the user explicitly selects it and supplies their own API key. A cloud generator receives only the question and the retrieved passages; API keys are never logged or returned by the API.
+1. No cloud services by default. The only network calls allowed at runtime are to Ollama on `localhost` (optional), the one-time embedding-model download, the API of a cloud generator (OpenAI or Anthropic), and the OpenAI embeddings API, each **only** when the user explicitly selects it and supplies their own API key. A cloud generator receives only the question and the retrieved passages. The OpenAI embedder receives the text of every indexed chunk and every question. API keys are never logged or returned by the API.
 2. Sample data is synthetic: company "Demo Motors", model "Velo 125". No real company names, people or documents.
 3. Uploaded files are stored under generated names inside the configured storage folder. User-supplied file names are never used as paths.
 4. API responses never include raw prompts, absolute file paths or stack traces.
@@ -83,6 +84,11 @@ The ten-point harness is mandatory:
 ---
 
 ## Amendments
+
+### 1.2.0 — 2026-10-25 — Optional OpenAI embeddings
+- **Why:** The user wants OpenAI's `text-embedding-3-small` for retrieval instead of the local model.
+- **Article II:** the `openai` SDK may also be used for embeddings.
+- **Article IV.1:** with the OpenAI embedder selected, the full text of every indexed chunk is sent to OpenAI (not only retrieved passages). The default embedder stays local, and the status page and UI say when it is not.
 
 ### 1.1.0 — 2026-10-25 — Optional cloud generators
 - **Why:** Users who have an OpenAI or Anthropic API key want better-written answers than the extractive generator gives, without installing Ollama.

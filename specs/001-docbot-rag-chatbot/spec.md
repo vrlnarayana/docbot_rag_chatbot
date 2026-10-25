@@ -31,6 +31,7 @@ This first version runs entirely on a laptop with no cloud services, so learners
 - An evaluation run that scores retrieval and answers against the golden set.
 - A Streamlit UI that talks only to the FastAPI service.
 - Optional cloud generators (OpenAI, Anthropic Claude) using the user's own API key, off by default.
+- Optional OpenAI embeddings for the vector retriever, using the user's own API key, off by default.
 
 **Out of scope (for this spec)**
 - Azure services, and any cloud service other than the optional OpenAI and Anthropic generators (SPEC-002).
@@ -169,8 +170,10 @@ Requirements use EARS notation. Each one gets at least one test named after it (
 - **FR-050** THE SYSTEM SHALL read all settings from environment variables or a `.env` file, with the defaults listed in the plan.
 - **FR-051** WHEN started, THE SYSTEM SHALL report on a status endpoint the active retriever, generator, embedding model, document and chunk counts, and any fallback in force.
 - **FR-052** IF a generator or retriever name that is not implemented is configured (for example `azure_openai`), THEN THE SYSTEM SHALL fail at startup with a message naming the valid options.
-- **FR-053** IF a cloud generator is selected without its API key, THEN THE SYSTEM SHALL fail at startup with a message naming the environment variable to set.
-- **FR-054** WHILE a cloud generator is active, THE SYSTEM SHALL say so on the status endpoint and in the UI, naming the provider that receives the question and the retrieved passages.
+- **FR-053** IF a cloud generator or the OpenAI embedder is selected without its API key, THEN THE SYSTEM SHALL fail at startup with a message naming the environment variable to set.
+- **FR-054** WHILE a cloud generator or the OpenAI embedder is active, THE SYSTEM SHALL say so on the status endpoint and in the UI, naming the provider and what it receives.
+- **FR-055** WHERE the embedder is set to **openai**, THE SYSTEM SHALL compute chunk and question embeddings with the OpenAI embeddings API (default model `text-embedding-3-small`) using the user's API key, and SHALL re-embed chunks made with a different model at startup.
+- **FR-056** IF the OpenAI embedder cannot be used at startup, THEN THE SYSTEM SHALL fall back to the keyword retriever and report it on the status endpoint; IF it fails while indexing a file or answering a question, THEN THE SYSTEM SHALL return HTTP 503 with an actionable message and store nothing.
 
 ### User interface
 - **FR-060** THE SYSTEM SHALL provide a Streamlit UI with four pages: **Chat**, **Documents**, **Evaluate** and **Status**.
@@ -180,7 +183,7 @@ Requirements use EARS notation. Each one gets at least one test named after it (
 - **FR-064** WHEN the API is not reachable, THE UI SHALL show a clear banner with the expected API URL instead of a stack trace.
 
 ## 5. Non-functional requirements
-- **NFR-001 Local-first.** After installation and the first embedding-model download, the app runs with no internet. No document text leaves the machine unless the user selects a cloud generator; then only the question and the retrieved passages are sent to that provider.
+- **NFR-001 Local-first.** After installation and the first embedding-model download, the app runs with no internet. No document text leaves the machine unless the user selects a cloud generator (then only the question and the retrieved passages are sent) or the OpenAI embedder (then the text of every indexed chunk and every question is sent to OpenAI).
 - **NFR-002 Performance.** On a typical laptop CPU, the full sample corpus is indexed in under 60 s, and an extractive answer returns in under 3 s.
 - **NFR-003 Simple to run.** One install command, then two commands to start (API and UI). No Docker and no database server.
 - **NFR-004 Cross-platform.** Works on Windows, macOS and Linux with Python 3.11–3.13.
@@ -248,4 +251,5 @@ Company **Demo Motors**, motorcycle model **Velo 125**. The generator must put t
 - **Q:** Should PDFs have their own size limit? → **A:** Yes. PDFs are capped at **1 MB** by default (`DOCBOT_MAX_PDF_MB`), because every page without a text layer is rendered and OCR'd, so a large PDF can tie up the CPU for a long time. Other types keep the 20 MB limit. (Amends FR-003.)
 - **Q:** What is `generator_used` when DocBot refuses or the library is empty and no generator runs? → **A:** `"none"`. It reports truthfully that no generator produced the text (FR-012, FR-018).
 - **Q:** Can users bring their own OpenAI or Claude key? → **A:** Yes (constitution 1.1.0). `DOCBOT_GENERATOR=openai` or `anthropic`, with `DOCBOT_OPENAI_API_KEY` / `OPENAI_API_KEY` or `DOCBOT_ANTHROPIC_API_KEY` / `ANTHROPIC_API_KEY`. Off by default; the status page and UI show when a cloud provider is in use (FR-019, FR-053, FR-054).
+- **Q:** Can the vector retriever use OpenAI embeddings? → **A:** Yes (constitution 1.2.0): `DOCBOT_EMBEDDER=openai`, model `DOCBOT_OPENAI_EMBED_MODEL` (default `text-embedding-3-small`), with the OpenAI key. All chunk text is sent to OpenAI when indexed. Off by default (FR-055, FR-056).
 - **Q:** Can learners use real Hero documents? → **A:** Not in the demo. In their own department lab they may upload non-confidential documents through the same UI.

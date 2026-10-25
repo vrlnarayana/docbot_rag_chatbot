@@ -58,6 +58,7 @@ docbot/
 │   │   ├── file_store.py          # LocalFileStore (generated names, safe paths)
 │   │   ├── extractors.py          # PdfExtractor, ImageExtractor, TextFileExtractor + OCR helper
 │   │   ├── embedder_fastembed.py  # FastEmbedEmbedder
+│   │   ├── embedder_openai.py     # OpenAIEmbedder (optional, FR-055)
 │   │   ├── retriever_vector.py    # VectorRetriever (NumPy cosine over cached matrix)
 │   │   ├── retriever_bm25.py      # Bm25Retriever
 │   │   ├── generator_extractive.py
@@ -98,7 +99,9 @@ docbot/
 | `DOCBOT_MAX_PDF_MB` | `1` | FR-003, PDF only |
 | `DOCBOT_CHUNK_SIZE` / `DOCBOT_CHUNK_OVERLAP` | `800` / `100` | FR-007 |
 | `DOCBOT_RETRIEVER` | `vector` | `vector` \| `keyword` (FR-011, FR-052) |
-| `DOCBOT_EMBED_MODEL` | `BAAI/bge-small-en-v1.5` | Cached in `data/models` |
+| `DOCBOT_EMBEDDER` | `fastembed` | `fastembed` (local) \| `openai` (FR-055) |
+| `DOCBOT_EMBED_MODEL` | `BAAI/bge-small-en-v1.5` | fastembed model; cached in `data/models` |
+| `DOCBOT_OPENAI_EMBED_MODEL` | `text-embedding-3-small` | Used when `EMBEDDER=openai`; needs the OpenAI key (FR-053) |
 | `DOCBOT_TOP_K` | `4` | Allowed 1–10 |
 | `DOCBOT_MIN_SCORE_VECTOR` | `0.50` | Cosine; tune using the evaluation page |
 | `DOCBOT_MIN_SCORE_KEYWORD` | `1.0` | BM25 |
