@@ -38,7 +38,7 @@ class IngestionService:
         self._repo = repository
         self._files = file_store
         self._extractors = extractors
-        self._embedder = embedder
+        self.embedder = embedder
         self.retriever = retriever
         self._chunk_size = chunk_size
         self._chunk_overlap = chunk_overlap
@@ -93,9 +93,9 @@ class IngestionService:
             for i, d in enumerate(drafts)
         ]
         embeddings = None
-        if self._embedder:
+        if self.embedder:
             embeddings = await anyio.to_thread.run_sync(
-                self._embedder.embed, [c.text for c in chunks]
+                self.embedder.embed, [c.text for c in chunks]
             )
 
         stored_name = await self._files.save(data, extension)
@@ -115,7 +115,7 @@ class IngestionService:
         )
         try:
             await self._repo.add(
-                document, chunks, embeddings, self._embedder.model_name if self._embedder else None
+                document, chunks, embeddings, self.embedder.model_name if self.embedder else None
             )
         except Exception:
             await self._files.delete(stored_name)
@@ -125,6 +125,21 @@ class IngestionService:
             raise
         await self.refresh_retriever()
         return document, False
+
+    async def reembed_stale(self) -> int:
+        """Embed chunks that have no embedding, or one from a different model. Returns the count."""
+        if not self.embedder:
+            return 0
+        model = self.embedder.model_name
+        stale = [c for c in await self._repo.indexed_chunks() if c.embed_model != model]
+        if stale:
+            vectors = await anyio.to_thread.run_sync(
+                self.embedder.embed, [c.chunk.text for c in stale]
+            )
+            await self._repo.set_embeddings(
+                {c.chunk.id: v for c, v in zip(stale, vectors, strict=True)}, model
+            )
+        return len(stale)
 
     async def refresh_retriever(self) -> None:
         if self.retriever:

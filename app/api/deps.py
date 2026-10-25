@@ -1,14 +1,19 @@
 """Dependency wiring: every adapter is built once, at startup, from settings (III.5)."""
 
+import logging
 from dataclasses import dataclass, field
 
+import anyio
 from fastapi import Request
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from app.adapters.db import SqliteDocumentRepository, create_engine_for
+from app.adapters.embedder_fastembed import FastEmbedEmbedder
 from app.adapters.extractors import ImageExtractor, OcrEngine, PdfExtractor, TextFileExtractor
 from app.adapters.file_store import LocalFileStore
-from app.core.ports import Generator, Retriever
+from app.adapters.retriever_bm25 import Bm25Retriever
+from app.adapters.retriever_vector import VectorRetriever
+from app.core.ports import Embedder, Generator, Retriever
 from app.core.services import IngestionService
 from app.settings import Settings
 
@@ -23,6 +28,25 @@ class Container:
     retriever: Retriever | None = None
     generator: Generator | None = None
     fallbacks: list[str] = field(default_factory=list)
+
+
+logger = logging.getLogger("docbot.startup")
+
+
+async def _build_retrieval(settings: Settings) -> tuple[Retriever, Embedder | None, list[str]]:
+    """FR-011 and the edge case in spec §3: no embedding model means keyword retrieval."""
+    if settings.retriever == "vector":
+        try:
+            embedder: Embedder = await anyio.to_thread.run_sync(
+                FastEmbedEmbedder, settings.embed_model, settings.models_dir
+            )
+        except Exception as exc:
+            reason = f"Embedding model '{settings.embed_model}' could not be loaded ({exc}); "
+            reason += "using the keyword retriever instead."
+            logger.warning(reason)
+            return Bm25Retriever(settings.min_score_keyword), None, [reason]
+        return VectorRetriever(embedder, settings.min_score_vector), embedder, []
+    return Bm25Retriever(settings.min_score_keyword), None, []
 
 
 async def build_container(settings: Settings) -> Container:
@@ -45,12 +69,19 @@ async def build_container(settings: Settings) -> Container:
         max_upload_bytes=settings.max_upload_bytes,
         max_pdf_bytes=settings.max_pdf_bytes,
     )
+    retriever, embedder, fallbacks = await _build_retrieval(settings)
+    ingestion.embedder = embedder
+    ingestion.retriever = retriever
+    await ingestion.reembed_stale()
+    await ingestion.refresh_retriever()
     return Container(
         settings=settings,
         engine=engine,
         repository=repository,
         file_store=file_store,
         ingestion=ingestion,
+        retriever=retriever,
+        fallbacks=fallbacks,
     )
 
 

@@ -14,7 +14,7 @@ Every functional requirement maps to the tasks that implement it, the source fil
 | FR-008 | T007, T014, T015 | `app/adapters/db.py`, `app/core/services.py`, `app/api/routes/documents.py` | `tests/unit/test_db.py::test_fr_008_lookup_by_sha256`, `tests/unit/test_ingestion.py::test_fr_008_duplicate_returns_existing_without_reindexing`, `tests/api/test_documents_upload.py::test_fr_008_duplicate_upload` | tested |
 | FR-009 | T007, T014, T015 | `app/adapters/db.py`, `app/core/services.py`, `app/api/routes/documents.py` | `tests/unit/test_db.py::test_fr_009_failed_insert_stores_nothing`, `tests/unit/test_ingestion.py::test_fr_009_no_text_stores_nothing`, `tests/unit/test_ingestion.py::test_fr_009_failed_insert_removes_saved_file`, `tests/api/test_documents_upload.py::test_fr_009_empty_file_is_422` | tested |
 | FR-010 | T004, T016 | `app/core/models.py`, `app/adapters/retriever_bm25.py` | `tests/unit/test_models.py::test_fr_010_ask_request_rejects_bad_question_length`, `tests/unit/test_models.py::test_fr_010_ask_request_top_k_bounds`, `tests/unit/test_settings.py::test_fr_010_top_k_bounds`, `tests/unit/test_bm25.py::test_fr_010_returns_at_most_k_with_positive_scores` | partial |
-| FR-011 | T016 | `app/adapters/retriever_bm25.py`, `app/core/text.py` | `tests/unit/test_bm25.py::test_fr_011_keyword_retriever_ranks_matching_chunk_first` | partial |
+| FR-011 | T016, T017 | `app/adapters/retriever_bm25.py`, `app/core/text.py`, `app/adapters/retriever_vector.py`, `app/adapters/embedder_fastembed.py`, `app/api/deps.py` | `tests/unit/test_bm25.py::test_fr_011_keyword_retriever_ranks_matching_chunk_first`, `tests/unit/test_vector.py::test_fr_011_vector_retriever_ranks_by_cosine`, `tests/api/test_retriever_wiring.py::test_fr_011_vector_retriever_active_when_model_loads` | tested |
 | FR-012 | | | | gap |
 | FR-013 | | | | gap |
 | FR-014 | T004 | `app/core/models.py` | `tests/unit/test_models.py::test_fr_014_citation_out_fields` | partial |
@@ -32,7 +32,7 @@ Every functional requirement maps to the tasks that implement it, the source fil
 | FR-040 | | | | gap |
 | FR-041 | | | | gap |
 | FR-050 | T001, T002 | `pyproject.toml`, `.env.example`, `app/settings.py` | `tests/unit/test_settings.py::test_fr_050_defaults_match_plan`, `tests/unit/test_settings.py::test_fr_050_reads_env_and_dotenv` | tested |
-| FR-051 | T009 | `app/api/routes/status.py`, `app/api/deps.py` | `tests/api/test_health_status.py::test_fr_051_status_reports_configuration_and_counts` | partial (fallbacks in T017) |
+| FR-051 | T009, T017 | `app/api/routes/status.py`, `app/api/deps.py` | `tests/api/test_health_status.py::test_fr_051_status_reports_configuration_and_counts`, `tests/api/test_retriever_wiring.py::test_fr_051_falls_back_to_keyword_when_model_unavailable` | tested |
 | FR-052 | T002, T009 | `app/settings.py`, `app/api/main.py` | `tests/unit/test_settings.py::test_fr_052_unknown_generator_fails_with_valid_options`, `tests/unit/test_settings.py::test_fr_052_unknown_retriever_fails_with_valid_options`, `tests/api/test_health_status.py::test_fr_052_startup_fails_with_clear_message` | tested |
 | FR-060 | | | | gap |
 | FR-061 | | | | gap |

@@ -34,7 +34,7 @@ Conventions: `[P]` = can run in parallel with the other `[P]` tasks in the same 
 ## Phase 4 — US-2 Ask a question and get a cited answer (P1)
 
 - [x] T016 [P] [FR-010, FR-011] `Bm25Retriever` (`rank-bm25`, same tokenizer as the answerability gate, refresh on change)
-- [ ] T017 [P] [FR-011, FR-051] `FastEmbedEmbedder` (worker thread, model cached in `data/models`) and `VectorRetriever` (NumPy cosine over a cached matrix; re-embed chunks whose `embed_model` differs); if the model cannot be loaded at startup, fall back to keyword and report it in `/status` `fallbacks`
+- [x] T017 [P] [FR-011, FR-051] `FastEmbedEmbedder` (worker thread, model cached in `data/models`) and `VectorRetriever` (NumPy cosine over a cached matrix; re-embed chunks whose `embed_model` differs); if the model cannot be loaded at startup, fall back to keyword and report it in `/status` `fallbacks`
 - [ ] T018 [P] [FR-012] `app/core/answerability.py`: tokenizer + IDF-weighted coverage gate (plan §7.2 step 4)
 - [ ] T019 [P] [FR-013] `ExtractiveGenerator`: best 3-line window by IDF-weighted overlap, tie-breaks per plan §7.4, ends with its citation marker
 - [ ] T020 [FR-010, FR-012, FR-013, FR-014, FR-015, FR-018] `QAService.ask` (core): empty-library message, top-k retrieval, score gate, coverage gate, generation, citation validation, `CitationOut` numbered by first use
