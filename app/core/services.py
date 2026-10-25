@@ -11,7 +11,12 @@ import anyio
 
 from app.core.answerability import AnswerabilityGate
 from app.core.chunking import chunk_pages
-from app.core.conversation import local_standalone, small_talk_kind, small_talk_reply
+from app.core.conversation import (
+    follow_up_terms,
+    local_standalone,
+    small_talk_kind,
+    small_talk_reply,
+)
 from app.core.errors import (
     DocumentNotFound,
     FileTooLarge,
@@ -42,6 +47,7 @@ from app.core.ports import (
     QuestionRewriter,
     Retriever,
 )
+from app.core.text import tokenize
 
 REFUSAL = "I couldn't find this in the uploaded documents."
 EMPTY_LIBRARY = (
@@ -247,11 +253,13 @@ class QAService:
             )
 
         standalone = question
+        own_terms: set[str] = set()  # set when the local rule joined a follow-up
         kind = small_talk_kind(question)
         if kind:  # FR-071: no retrieval, no LLM
             return respond(small_talk_reply(kind), small_talk=True)
         if history:  # FR-070: everything below works on the standalone question
-            standalone = await self._standalone(question, history)
+            standalone, joined = await self._standalone(question, history)
+            own_terms = follow_up_terms(question) if joined else set()
 
         _documents, chunk_count = await self._repo.counts()
         if chunk_count == 0:
@@ -263,6 +271,8 @@ class QAService:
         coverage = self._gate.coverage(standalone, [r.chunk.text for r in retrieved])
         if coverage < self._min_coverage:
             return respond(REFUSAL)
+        if own_terms and not own_terms & set(tokenize(" ".join(r.chunk.text for r in retrieved))):
+            return respond(REFUSAL)  # FR-070: the follow-up's own words are not in the passages
 
         answer = await self.generator.generate(standalone, retrieved)
         text, citations = _cite(answer, retrieved)
@@ -276,12 +286,14 @@ class QAService:
         return respond(text, citations, answer.generator_used, fallback_reason)
 
 
-    async def _standalone(self, question: str, history: list[ChatTurn]) -> str:
+    async def _standalone(self, question: str, history: list[ChatTurn]) -> tuple[str, bool]:
+        """The standalone question, and whether the local rule joined it to the previous one."""
         if self.rewriter:
             rewritten = await self.rewriter.rewrite(question, history)
             if rewritten:
-                return rewritten
-        return local_standalone(question, history) or question
+                return rewritten, False
+        joined = local_standalone(question, history)
+        return (joined, True) if joined else (question, False)
 
     async def retrieve(self, question: str, top_k: int) -> list[RetrievedChunk]:
         return await anyio.to_thread.run_sync(self.retriever.search, question, top_k)

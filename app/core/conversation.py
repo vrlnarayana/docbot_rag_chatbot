@@ -130,3 +130,11 @@ def local_standalone(question: str, history: list[ChatTurn]) -> str | None:
     if previous is None or not looks_like_follow_up(question):
         return None
     return f"{previous} {question}"
+
+
+_FOLLOW_UP_FILLER = {"about", "also", "and"}
+
+
+def follow_up_terms(question: str) -> set[str]:
+    """The follow-up's own content words, without referring words such as "it" or "one"."""
+    return set(tokenize(question)) - _REFERRING_WORDS - _FOLLOW_UP_FILLER

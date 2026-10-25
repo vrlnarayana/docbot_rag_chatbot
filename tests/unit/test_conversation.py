@@ -83,9 +83,9 @@ class ScriptedRewriter:
 async def test_fr_070_follow_up_is_rewritten_before_retrieval() -> None:
     retriever = FakeRetriever([rc(0), rc(1)])
     qa = service(retriever, FakeGenerator())
-    reply = await qa.ask("and the rear one?", 4, HISTORY)
-    assert retriever.calls[0][0] == f"{FRONT_Q} and the rear one?"
-    assert reply.standalone_question == f"{FRONT_Q} and the rear one?"
+    reply = await qa.ask("what about the fluid?", 4, HISTORY)
+    assert retriever.calls[0][0] == f"{FRONT_Q} what about the fluid?"
+    assert reply.standalone_question == f"{FRONT_Q} what about the fluid?"
     assert reply.grounded
 
 
@@ -109,3 +109,27 @@ async def test_fr_070_no_history_means_no_rewrite() -> None:
     assert reply.standalone_question is None
     assert retriever.calls[0][0] == FRONT_Q
     assert qa.rewriter.calls == []  # type: ignore[attr-defined]
+
+
+from app.core.conversation import follow_up_terms  # noqa: E402
+
+
+def test_fr_070_follow_up_terms_ignore_referring_words() -> None:
+    assert follow_up_terms("and the rear one?") == {"rear"}
+    assert follow_up_terms("what about the top speed?") == {"top", "speed"}
+    assert follow_up_terms("how often do you replace it?") == {"often", "replace"}
+    assert follow_up_terms("and?") == set()
+
+
+async def test_fr_070_follow_up_with_none_of_its_words_in_the_passages_is_refused() -> None:
+    from app.core.services import REFUSAL
+
+    gen = FakeGenerator()
+    qa = service(FakeRetriever([rc(0), rc(1)]), gen)
+    history = [ChatTurn(role="user", content=FRONT_Q)]
+    reply = await qa.ask("and who is the CEO?", 4, history)
+    assert reply.answer == REFUSAL and reply.citations == [] and gen.calls == 0
+    ok = await qa.ask("and the rear one?", 4, history)  # no "rear" in TEXTS either
+    assert ok.answer == REFUSAL
+    passes = await qa.ask("what about the fluid?", 4, history)  # "fluid" is in TEXTS[1]
+    assert passes.grounded
