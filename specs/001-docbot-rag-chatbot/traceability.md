@@ -36,12 +36,12 @@ Every functional requirement maps to the tasks that implement it, the source fil
 | FR-051 | T009, T017 | `app/api/routes/status.py`, `app/api/deps.py` | `tests/api/test_health_status.py::test_fr_051_status_reports_configuration_and_counts`, `tests/api/test_retriever_wiring.py::test_fr_051_falls_back_to_keyword_when_model_unavailable` | tested |
 | FR-052 | T002, T009 | `app/settings.py`, `app/api/main.py` | `tests/unit/test_settings.py::test_fr_052_unknown_generator_fails_with_valid_options`, `tests/unit/test_settings.py::test_fr_052_unknown_retriever_fails_with_valid_options`, `tests/api/test_health_status.py::test_fr_052_startup_fails_with_clear_message` | tested |
 | FR-053 | T039 | `app/settings.py` | `tests/unit/test_settings.py::test_fr_053_cloud_generator_without_key_fails` | tested |
-| FR-054 | T041 | `app/api/deps.py`, `app/api/routes/status.py` | `tests/api/test_cloud_wiring.py::test_fr_054_cloud_generator_is_wired_and_announced`, `tests/api/test_cloud_wiring.py::test_fr_054_local_setup_has_no_cloud_notice` | partial |
-| FR-060 | | | | gap |
+| FR-054 | T041, T031 | `app/api/deps.py`, `app/api/routes/status.py`, `ui/Home.py` | `tests/api/test_cloud_wiring.py::test_fr_054_cloud_generator_is_wired_and_announced`, `tests/api/test_cloud_wiring.py::test_fr_054_local_setup_has_no_cloud_notice`, `tests/ui/test_chat_page.py::test_fr_054_cloud_notice_is_shown` | tested |
+| FR-060 | T031 | `ui/Home.py` | `tests/ui/test_chat_page.py::test_fr_060_sidebar_shows_retriever_generator_and_top_k` | partial |
 | FR-061 | T030 | `ui/api_client.py` | `tests/unit/test_api_client.py::test_fr_061_ask_goes_over_http`, `tests/unit/test_api_client.py::test_fr_061_ui_imports_nothing_from_the_backend` | tested |
-| FR-062 | | | | gap |
+| FR-062 | T031 | `ui/Home.py` | `tests/ui/test_chat_page.py::test_fr_062_answer_shows_numbered_citations_with_passage_and_score` | tested |
 | FR-063 | | | | gap |
-| FR-064 | T030 | `ui/api_client.py` | `tests/unit/test_api_client.py::test_fr_064_unreachable_api_raises_api_unavailable` | partial |
+| FR-064 | T030, T031 | `ui/api_client.py`, `ui/Home.py` | `tests/unit/test_api_client.py::test_fr_064_unreachable_api_raises_api_unavailable`, `tests/ui/test_chat_page.py::test_fr_064_api_down_shows_banner_with_url` | tested |
 
 ## Constitution and non-functional checks
 
