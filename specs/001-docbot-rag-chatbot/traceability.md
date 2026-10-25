@@ -10,7 +10,7 @@ Every functional requirement maps to the tasks that implement it, the source fil
 | FR-004 | | | | gap |
 | FR-005 | | | | gap |
 | FR-006 | | | | gap |
-| FR-007 | | | | gap |
+| FR-007 | T010 | `app/core/chunking.py` | `tests/unit/test_chunking.py::test_fr_007_chunks_never_exceed_size`, `tests/unit/test_chunking.py::test_fr_007_consecutive_chunks_overlap`, `tests/unit/test_chunking.py::test_fr_007_prefers_paragraph_breaks`, `tests/unit/test_chunking.py::test_fr_007_prefers_line_breaks_over_spaces`, `tests/unit/test_chunking.py::test_fr_007_never_crosses_pages_and_keeps_source`, `tests/unit/test_chunking.py::test_fr_007_drops_tiny_chunks_unless_only_text`, `tests/unit/test_chunking.py::test_fr_007_no_text_is_lost`, `tests/unit/test_chunking.py::test_fr_007_short_text_is_one_chunk` | tested |
 | FR-008 | T007 | `app/adapters/db.py` | `tests/unit/test_db.py::test_fr_008_lookup_by_sha256` | partial |
 | FR-009 | T007 | `app/adapters/db.py` | `tests/unit/test_db.py::test_fr_009_failed_insert_stores_nothing` | partial |
 | FR-010 | T004 | `app/core/models.py` | `tests/unit/test_models.py::test_fr_010_ask_request_rejects_bad_question_length`, `tests/unit/test_models.py::test_fr_010_ask_request_top_k_bounds`, `tests/unit/test_settings.py::test_fr_010_top_k_bounds` | partial |

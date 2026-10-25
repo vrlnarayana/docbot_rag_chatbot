@@ -23,7 +23,7 @@ Conventions: `[P]` = can run in parallel with the other `[P]` tasks in the same 
 
 ## Phase 3 — US-1 Upload documents (P1)
 
-- [ ] T010 [FR-007] `app/core/chunking.py`: page-aware chunker (≤ 800 chars, 100 overlap, split at blank line → newline → sentence end → space, never cross pages, drop < 20 chars unless only text)
+- [x] T010 [FR-007] `app/core/chunking.py`: page-aware chunker (≤ 800 chars, 100 overlap, split at blank line → newline → sentence end → space, never cross pages, drop < 20 chars unless only text)
 - [ ] T011 [P] [FR-006] `TextFileExtractor`: whole file as page 1, UTF-8 then Latin-1
 - [ ] T012 [P] [FR-005] OCR helper (`rapidocr-onnxruntime`, lines in reading order) and `ImageExtractor` (page 1, `source = ocr`)
 - [ ] T013 [FR-004] `PdfExtractor`: `pypdf` layout text with column runs collapsed to ` | `; pages under 20 chars rendered with `pypdfium2` at 200 DPI and OCR'd; encrypted/corrupt PDFs → `ExtractionFailed`
