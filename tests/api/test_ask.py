@@ -93,8 +93,8 @@ async def test_fr_012_out_of_scope_questions_are_refused(
 
 @pytest.mark.parametrize(
     "payload",
-    [{"question": "hi"}, {"question": "x" * 1001}, {"question": "What is it?", "top_k": 0},
-     {"question": "What is it?", "top_k": 11}, {"question": "What is it?", "history": []},
+    [{"question": "h"}, {"question": "x" * 1001}, {"question": "What is it?", "top_k": 0},
+     {"question": "What is it?", "top_k": 11}, {"question": "What is it?", "session": "x"},
      {"question": 123}],
 )
 async def test_fr_010_invalid_requests_are_422(

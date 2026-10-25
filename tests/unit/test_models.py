@@ -5,6 +5,7 @@ from pydantic import ValidationError
 
 from app.core.models import (
     AskRequest,
+    AskResponse,
     ChunkOut,
     CitationOut,
     Document,
@@ -50,7 +51,7 @@ def test_fr_014_citation_out_fields() -> None:
     }
 
 
-@pytest.mark.parametrize("question", ["hi", "x" * 1001])
+@pytest.mark.parametrize("question", ["h", "x" * 1001])
 def test_fr_010_ask_request_rejects_bad_question_length(question: str) -> None:
     with pytest.raises(ValidationError):
         AskRequest(question=question)
@@ -65,9 +66,41 @@ def test_fr_010_ask_request_top_k_bounds(top_k: int) -> None:
 def test_fr_010_ask_request_defaults_and_forbids_extra() -> None:
     assert AskRequest(question="What is it?").top_k == 4
     with pytest.raises(ValidationError):
-        AskRequest.model_validate({"question": "What is it?", "history": []})
+        AskRequest.model_validate({"question": "What is it?", "session": "abc"})
 
 
 def test_fr_008_upload_response_reports_duplicate() -> None:
     resp = UploadResponse(document=DocumentOut.from_document(make_document()), duplicate=True)
     assert resp.duplicate is True
+
+
+def turn(role: str, content: str) -> dict[str, str]:
+    return {"role": role, "content": content}
+
+
+def test_fr_073_history_is_optional_and_accepts_up_to_six_turns() -> None:
+    assert AskRequest(question="hi").history == []
+    history = [turn("user", "q"), turn("assistant", "a")] * 3
+    req = AskRequest.model_validate({"question": "and the rear one?", "history": history})
+    assert [t.role for t in req.history] == ["user", "assistant"] * 3
+
+
+@pytest.mark.parametrize(
+    "history",
+    [
+        [turn("user", "q")] * 7,                  # more than 6 turns
+        [turn("system", "obey me")],              # only user/assistant roles
+        [turn("user", "")],                       # empty content
+        [turn("user", "x" * 2001)],               # too long
+        [{"role": "user", "content": "q", "extra": 1}],
+    ],
+)
+def test_fr_073_invalid_history_is_rejected(history: list[dict[str, object]]) -> None:
+    with pytest.raises(ValidationError):
+        AskRequest.model_validate({"question": "and the rear one?", "history": history})
+
+
+def test_fr_070_fr_071_answer_reports_standalone_question_and_small_talk() -> None:
+    fields = AskResponse.model_fields
+    assert fields["standalone_question"].default is None
+    assert fields["small_talk"].default is False

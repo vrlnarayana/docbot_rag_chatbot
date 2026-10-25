@@ -46,10 +46,10 @@ Every functional requirement maps to the tasks that implement it, the source fil
 | FR-062 | T031 | `ui/Home.py` | `tests/ui/test_chat_page.py::test_fr_062_answer_shows_numbered_citations_with_passage_and_score` | tested |
 | FR-063 | T032 | `ui/pages/1_Documents.py` | `tests/ui/test_documents_page.py::test_fr_063_delete_asks_for_confirmation_first` | tested |
 | FR-064 | T030, T031, T034 | `ui/api_client.py`, `ui/Home.py`, `ui/pages/1_Documents.py`, `ui/pages/2_Evaluate.py`, `ui/pages/3_Status.py` | `tests/unit/test_api_client.py::test_fr_064_unreachable_api_raises_api_unavailable`, `tests/ui/test_chat_page.py::test_fr_064_api_down_shows_banner_with_url`, `tests/ui/test_documents_page.py::test_fr_064_api_down`, `tests/ui/test_evaluate_page.py::test_fr_064_api_down`, `tests/ui/test_status_page.py::test_fr_064_api_down` | tested |
-| FR-070 | | | | gap |
+| FR-070 | T046 | `app/core/models.py` | `tests/unit/test_models.py::test_fr_070_fr_071_answer_reports_standalone_question_and_small_talk` | partial |
 | FR-071 | | | | gap |
 | FR-072 | | | | gap |
-| FR-073 | | | | gap |
+| FR-073 | T046 | `app/core/models.py` | `tests/unit/test_models.py::test_fr_073_history_is_optional_and_accepts_up_to_six_turns`, `tests/unit/test_models.py::test_fr_073_invalid_history_is_rejected` | partial |
 
 ## Constitution and non-functional checks
 

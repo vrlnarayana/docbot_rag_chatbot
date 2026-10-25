@@ -170,9 +170,18 @@ class DeleteResponse(_Out):
     deleted_id: str
 
 
+MAX_HISTORY_TURNS = 6  # FR-073
+
+
+class ChatTurn(_Strict):
+    role: Literal["user", "assistant"]
+    content: str = Field(min_length=1, max_length=2000)
+
+
 class AskRequest(_Strict):
-    question: str = Field(min_length=3, max_length=1000)
+    question: str = Field(min_length=2, max_length=1000)
     top_k: int = Field(default=4, ge=1, le=10)
+    history: list[ChatTurn] = Field(default_factory=list, max_length=MAX_HISTORY_TURNS)
 
 
 class CitationOut(_Out):
@@ -193,6 +202,8 @@ class AskResponse(_Out):
     generator_used: str
     fallback_reason: str | None = None
     latency_ms: float
+    standalone_question: str | None = None  # FR-070: set when a follow-up was rewritten
+    small_talk: bool = False  # FR-071
 
 
 class SamplesResponse(_Out):
