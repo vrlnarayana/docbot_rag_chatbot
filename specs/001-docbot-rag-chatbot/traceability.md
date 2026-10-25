@@ -13,17 +13,17 @@ Every functional requirement maps to the tasks that implement it, the source fil
 | FR-007 | | | | gap |
 | FR-008 | | | | gap |
 | FR-009 | | | | gap |
-| FR-010 | | | | gap |
+| FR-010 | T004 | `app/core/models.py` | `tests/unit/test_models.py::test_fr_010_ask_request_rejects_bad_question_length`, `tests/unit/test_models.py::test_fr_010_ask_request_top_k_bounds`, `tests/unit/test_settings.py::test_fr_010_top_k_bounds` | partial |
 | FR-011 | | | | gap |
 | FR-012 | | | | gap |
 | FR-013 | | | | gap |
-| FR-014 | | | | gap |
+| FR-014 | T004 | `app/core/models.py` | `tests/unit/test_models.py::test_fr_014_citation_out_fields` | partial |
 | FR-015 | | | | gap |
 | FR-016 | | | | gap |
 | FR-017 | | | | gap |
 | FR-018 | | | | gap |
-| FR-020 | | | | gap |
-| FR-021 | | | | gap |
+| FR-020 | T004 | `app/core/models.py` | `tests/unit/test_models.py::test_fr_020_document_out_has_listing_fields_and_no_internal_ones` | partial |
+| FR-021 | T004 | `app/core/models.py` | `tests/unit/test_models.py::test_fr_021_chunk_out_fields` | partial |
 | FR-022 | | | | gap |
 | FR-023 | | | | gap |
 | FR-030 | | | | gap |
