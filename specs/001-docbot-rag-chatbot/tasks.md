@@ -56,7 +56,7 @@ Conventions: `[P]` = can run in parallel with the other `[P]` tasks in the same 
 
 - [x] T025 [FR-020, FR-021] `GET /documents`, `GET /documents/{id}`, `GET /documents/{id}/chunks` (404 for unknown id)
 - [x] T026 [FR-022, FR-023] `DELETE /documents/{id}`: document, chunks, embeddings and file removed; retriever refreshed; test that no bulk-delete route exists
-- [ ] T027 [P] [FR-023] `scripts/reset_demo.py`: deletes `data/` only after typing `RESET`
+- [x] T027 [P] [FR-023] `scripts/reset_demo.py`: deletes `data/` only after typing `RESET`
 
 ## Phase 7 — US-5 Evaluate answer quality (P3)
 
