@@ -5,8 +5,8 @@ from fastapi.exceptions import RequestValidationError
 from starlette.datastructures import UploadFile
 
 from app.api.deps import Container, get_container
-from app.core.errors import FileTooLarge, LengthRequired
-from app.core.models import DocumentOut, ErrorResponse, UploadResponse
+from app.core.errors import DocumentNotFound, FileTooLarge, LengthRequired
+from app.core.models import ChunkOut, DocumentOut, ErrorResponse, UploadResponse
 
 router = APIRouter(tags=["documents"])
 
@@ -80,3 +80,36 @@ async def upload_document(
 
     response.status_code = 200 if duplicate else 201
     return UploadResponse(document=DocumentOut.from_document(document), duplicate=duplicate)
+
+
+_NOT_FOUND: dict[int | str, dict[str, Any]] = {404: {"model": ErrorResponse}}
+
+
+@router.get("/documents", response_model=list[DocumentOut])
+async def list_documents(
+    container: Annotated[Container, Depends(get_container)],
+) -> list[DocumentOut]:
+    """FR-020: every indexed document, oldest first."""
+    return [DocumentOut.from_document(d) for d in await container.repository.list_all()]
+
+
+@router.get("/documents/{document_id}", response_model=DocumentOut, responses=_NOT_FOUND)
+async def get_document(
+    document_id: str, container: Annotated[Container, Depends(get_container)]
+) -> DocumentOut:
+    document = await container.repository.get(document_id)
+    if document is None:
+        raise DocumentNotFound(document_id)
+    return DocumentOut.from_document(document)
+
+
+@router.get(
+    "/documents/{document_id}/chunks", response_model=list[ChunkOut], responses=_NOT_FOUND
+)
+async def get_chunks(
+    document_id: str, container: Annotated[Container, Depends(get_container)]
+) -> list[ChunkOut]:
+    """FR-021: the document's chunks in page order, with their source (text or ocr)."""
+    if await container.repository.get(document_id) is None:
+        raise DocumentNotFound(document_id)
+    return [ChunkOut.from_chunk(c) for c in await container.repository.chunks(document_id)]
