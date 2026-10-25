@@ -8,6 +8,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 RETRIEVERS = ("vector", "keyword")
 GENERATORS = ("extractive", "ollama", "openai", "anthropic")
+EMBEDDERS = ("fastembed", "openai")
 
 
 class Settings(BaseSettings):
@@ -23,7 +24,9 @@ class Settings(BaseSettings):
     chunk_size: int = Field(default=800, ge=100)
     chunk_overlap: int = Field(default=100, ge=0)
     retriever: str = "vector"
+    embedder: str = "fastembed"
     embed_model: str = "BAAI/bge-small-en-v1.5"
+    openai_embed_model: str = "text-embedding-3-small"
     top_k: int = Field(default=4, ge=1, le=10)
     min_score_vector: float = 0.50
     min_score_keyword: float = 1.0
@@ -54,6 +57,15 @@ class Settings(BaseSettings):
             )
         return value
 
+    @field_validator("embedder")
+    @classmethod
+    def _known_embedder(cls, value: str) -> str:
+        if value not in EMBEDDERS:
+            raise ValueError(
+                f"Unknown embedder '{value}'. Valid options: {', '.join(EMBEDDERS)}."
+            )
+        return value
+
     @field_validator("generator")
     @classmethod
     def _known_generator(cls, value: str) -> str:
@@ -66,7 +78,14 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def _cloud_key_present(self) -> Self:
-        """FR-053: a cloud generator needs its API key."""
+        """FR-053: a cloud generator, or the OpenAI embedder, needs its API key."""
+        key = self.openai_api_key
+        has_openai_key = bool(key and key.get_secret_value().strip())
+        if self.embedder == "openai" and not has_openai_key:
+            raise ValueError(
+                "DOCBOT_EMBEDDER=openai needs an API key. Set DOCBOT_OPENAI_API_KEY in .env "
+                "(or OPENAI_API_KEY), or use DOCBOT_EMBEDDER=fastembed."
+            )
         missing = {
             "openai": ("DOCBOT_OPENAI_API_KEY", self.openai_api_key),
             "anthropic": ("DOCBOT_ANTHROPIC_API_KEY", self.anthropic_api_key),

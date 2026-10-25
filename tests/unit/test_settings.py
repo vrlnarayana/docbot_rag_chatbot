@@ -109,3 +109,38 @@ def test_fr_053_cloud_generator_without_key_fails(
     with pytest.raises(ValidationError) as exc:
         Settings()
     assert variable in str(exc.value)
+
+
+def test_fr_055_embedder_defaults_to_local(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    monkeypatch.chdir(tmp_path)
+    s = Settings()
+    assert s.embedder == "fastembed"
+    assert s.openai_embed_model == "text-embedding-3-small"
+
+
+def test_fr_055_openai_embedder_with_key(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("DOCBOT_EMBEDDER", "openai")
+    monkeypatch.setenv("DOCBOT_OPENAI_API_KEY", "sk-test")
+    assert Settings().embedder == "openai"
+
+
+def test_fr_053_openai_embedder_without_key_fails(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    for name in ("OPENAI_API_KEY", "DOCBOT_OPENAI_API_KEY"):
+        monkeypatch.delenv(name, raising=False)
+    monkeypatch.setenv("DOCBOT_EMBEDDER", "openai")
+    with pytest.raises(ValidationError) as exc:
+        Settings()
+    assert "DOCBOT_EMBEDDER=openai" in str(exc.value)
+    assert "DOCBOT_OPENAI_API_KEY" in str(exc.value)
+
+
+def test_fr_052_unknown_embedder_fails(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("DOCBOT_EMBEDDER", "azure")
+    with pytest.raises(ValidationError) as exc:
+        Settings()
+    assert "Unknown embedder 'azure'" in str(exc.value) and "fastembed, openai" in str(exc.value)

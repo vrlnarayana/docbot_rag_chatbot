@@ -49,7 +49,7 @@ Conventions: `[P]` = can run in parallel with the other `[P]` tasks in the same 
 
 ## Phase 4c — Optional OpenAI embeddings (constitution 1.2.0)
 
-- [ ] T042 [FR-050, FR-052, FR-053, FR-055] Settings: `DOCBOT_EMBEDDER` (`fastembed` | `openai`), `DOCBOT_OPENAI_EMBED_MODEL`; the OpenAI embedder needs the OpenAI key
+- [x] T042 [FR-050, FR-052, FR-053, FR-055] Settings: `DOCBOT_EMBEDDER` (`fastembed` | `openai`), `DOCBOT_OPENAI_EMBED_MODEL`; the OpenAI embedder needs the OpenAI key
 - [ ] T043 [FR-055, FR-056] `embedder_openai.py`: `OpenAIEmbedder` on the official SDK (batched, timeout, 2 retries); provider errors become an `EmbeddingUnavailable` domain error (HTTP 503)
 - [ ] T044 [FR-055, FR-056, FR-054] Wiring: build the chosen embedder, re-embed at startup, fall back to keyword if that fails, `/status` notice that chunk text goes to OpenAI
 - [ ] T045 [FR-055] Calibrate `DOCBOT_MIN_SCORE_VECTOR` for `text-embedding-3-small` on the sample set and document it

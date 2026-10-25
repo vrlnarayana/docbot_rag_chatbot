@@ -1,0 +1,51 @@
+- question: What is the minimum thickness of the front brake disc?
+  expected_file: DM-STD-BRK-001_Brake_System_Design_Standard.pdf
+  expected_page: 2
+  expected_keywords:
+  - 3.5 mm
+- question: What brake fluid does the brake standard specify?
+  expected_file: DM-STD-BRK-001_Brake_System_Design_Standard.pdf
+  expected_page: 3
+  expected_keywords:
+  - DOT 4
+- question: What was the peak handlebar vibration in the test?
+  expected_file: TR-2026-014_Handlebar_Vibration_Test_Report.pdf
+  expected_page: 2
+  expected_keywords:
+  - '18.2'
+- question: What is the tensile strength on the Northwind Castings certificate?
+  expected_file: SC-889_Supplier_Certificate_Northwind_Castings.pdf
+  expected_page: 1
+  expected_keywords:
+  - 240 MPa
+- question: What is the high beam wattage of the LED headlamp?
+  expected_file: DM-SPEC-LMP-12_Headlamp_Spec_Sheet.png
+  expected_page: 1
+  expected_keywords:
+  - 13 W
+- question: How many pistons does the front brake caliper have?
+  expected_file: Label_DM-BRK-2210_Front_Caliper.jpg
+  expected_page: 1
+  expected_keywords:
+  - '2'
+- question: What is the new rear sprocket size for the Velo 125?
+  expected_file: DM-ECN-0457_Engineering_Change_Note.txt
+  expected_page: 1
+  expected_keywords:
+  - 43T
+- question: What is the recommended rear tyre pressure?
+  expected_file: Velo125_Owner_Manual_Extract.md
+  expected_page: 1
+  expected_keywords:
+  - 33 psi
+- question: What DVP&R completion is required to exit Gate G3?
+  expected_file: DM-GATE-G3_Readiness_Checklist.md
+  expected_page: 1
+  expected_keywords:
+  - 95%
+- question: What is the top speed of the Velo 125?
+  expect_refusal: true
+- question: Who is the CEO of Demo Motors?
+  expect_refusal: true
+- question: What is the warranty period for the battery?
+  expect_refusal: true
