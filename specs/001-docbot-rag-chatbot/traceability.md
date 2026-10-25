@@ -2,6 +2,8 @@
 
 Every functional requirement maps to the tasks that implement it, the source files, and the tests that prove it (Constitution I.5). A row with no test is a gap and blocks "done".
 
+**Final check (T037, 2026-10-25):** all 38 FRs in the spec appear below, each has at least one collected `test_fr_xxx` test, every test referenced here exists, and the full quality gate passes (232 tests, ruff, mypy --strict app/core).
+
 | FR | Tasks | Source files | Tests | Status |
 |---|---|---|---|---|
 | FR-001 | T005, T013, T014, T015 | `app/core/errors.py`, `app/adapters/extractors.py`, `app/core/services.py`, `app/api/routes/documents.py` | `tests/unit/test_errors.py::test_fr_001_supported_extensions`, `tests/unit/test_extract_pdf.py::test_fr_001_text_pdf_pages`, `tests/unit/test_extract_pdf.py::test_fr_001_table_rows_stay_on_one_line`, `tests/unit/test_ingestion.py::test_fr_001_ingest_indexes_document_and_chunks`, `tests/api/test_documents_upload.py::test_fr_001_each_supported_type_is_indexed` | tested |

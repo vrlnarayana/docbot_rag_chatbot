@@ -75,7 +75,7 @@ Conventions: `[P]` = can run in parallel with the other `[P]` tasks in the same 
 
 - [x] T035 [SC-003, SC-004, SC-005] `tests/e2e/test_sample_corpus.py`: generate → load → 12 golden questions with keyword retriever and extractive generator
 - [x] T036 [SC-007, NFR-003] README quick-start (clone to cited answer in under 10 minutes)
-- [ ] T037 [SC-006] Final pass: every FR has a passing test, `traceability.md` has no gaps, full quality gate green
+- [x] T037 [SC-006] Final pass: every FR has a passing test, `traceability.md` has no gaps, full quality gate green
 
 ---
 
