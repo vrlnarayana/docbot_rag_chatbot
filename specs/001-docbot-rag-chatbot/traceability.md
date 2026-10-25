@@ -45,3 +45,4 @@ Every functional requirement maps to the tasks that implement it, the source fil
 | Rule | Tasks | Source files | Tests |
 |---|---|---|---|
 | VII.3 structured request logs, no document text | T003 | `app/api/logging.py` | `tests/api/test_logging.py::test_one_structured_line_per_request` |
+| III.10 `app/core` imports no infrastructure libraries | T006 | `app/core/` | `tests/unit/test_architecture.py::test_core_imports_no_banned_modules`, `::test_core_does_not_import_adapters_or_api` |
