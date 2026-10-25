@@ -114,6 +114,7 @@ class StatusResponse(_Out):
     documents: int
     chunks: int
     fallbacks: list[str]
+    notices: list[str] = Field(default_factory=list)
 
 
 class DocumentOut(_Out):

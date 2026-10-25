@@ -25,4 +25,5 @@ async def status(container: Annotated[Container, Depends(get_container)]) -> Sta
         documents=documents,
         chunks=chunks,
         fallbacks=container.fallbacks,
+        notices=container.notices,
     )
