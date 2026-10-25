@@ -2,7 +2,7 @@
 
 These rules apply to every spec, plan, task and line of code in this repository. If a plan or task conflicts with them, the constitution wins. Change it only by an explicit, versioned amendment at the bottom of this file.
 
-**Version** 1.2.0 · **Ratified** 2026-10-25 · **Last amended** 2026-10-25
+**Version** 1.3.0 · **Ratified** 2026-10-25 · **Last amended** 2026-10-25
 
 ---
 
@@ -60,7 +60,7 @@ The ten-point harness is mandatory:
 10. `app/core` imports nothing from `fastapi`, `sqlalchemy`, `sqlite3`, `httpx`, `fastembed`, `rapidocr_onnxruntime`, `pypdf` or `pypdfium2`.
 
 ## Article IV — Local-first and data safety
-1. No cloud services by default. The only network calls allowed at runtime are to Ollama on `localhost` (optional), the one-time embedding-model download, the API of a cloud generator (OpenAI or Anthropic), and the OpenAI embeddings API, each **only** when the user explicitly selects it and supplies their own API key. A cloud generator receives only the question and the retrieved passages. The OpenAI embedder receives the text of every indexed chunk and every question. API keys are never logged or returned by the API.
+1. No cloud services by default. The only network calls allowed at runtime are to Ollama on `localhost` (optional), the one-time embedding-model download, the API of a cloud generator (OpenAI or Anthropic), and the OpenAI embeddings API, each **only** when the user explicitly selects it and supplies their own API key. A cloud generator receives only the question, the retrieved passages and, for follow-up questions, the recent conversation turns the UI sends. The OpenAI embedder receives the text of every indexed chunk and every question. API keys are never logged or returned by the API.
 2. Sample data is synthetic: company "Demo Motors", model "Velo 125". No real company names, people or documents.
 3. Uploaded files are stored under generated names inside the configured storage folder. User-supplied file names are never used as paths.
 4. API responses never include raw prompts, absolute file paths or stack traces.
@@ -84,6 +84,10 @@ The ten-point harness is mandatory:
 ---
 
 ## Amendments
+
+### 1.3.0 — 2026-10-25 — Conversational chat
+- **Why:** The user wants follow-up questions, small talk and conversational answers.
+- **Article IV.1:** a cloud generator may also receive the recent conversation turns (at most 6) to rewrite a follow-up into a standalone question. The server stores no conversations; the UI sends the turns with each question.
 
 ### 1.2.0 — 2026-10-25 — Optional OpenAI embeddings
 - **Why:** The user wants OpenAI's `text-embedding-3-small` for retrieval instead of the local model.

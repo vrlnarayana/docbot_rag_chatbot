@@ -54,6 +54,15 @@ Conventions: `[P]` = can run in parallel with the other `[P]` tasks in the same 
 - [x] T044 [FR-055, FR-056, FR-054] Wiring: build the chosen embedder, re-embed at startup, fall back to keyword if that fails, `/status` notice that chunk text goes to OpenAI
 - [x] T045 [FR-055] Calibrate `DOCBOT_MIN_SCORE_VECTOR` for `text-embedding-3-small` on the sample set and document it
 
+## Phase 4d — Conversational chat (constitution 1.3.0)
+
+- [ ] T046 [FR-010, FR-073] Models: `ChatTurn`, `AskRequest.history` (≤ 6 turns), question 2–1000 chars; `AskResponse.standalone_question` and `small_talk`
+- [ ] T047 [FR-071] `app/core/conversation.py`: small-talk detection and replies; `QAService` answers small talk without retrieval
+- [ ] T048 [FR-070] `QuestionRewriter` port, local follow-up rule, fallback chain; `QAService` uses the standalone question throughout and returns it
+- [ ] T049 [FR-070, FR-072, FR-054] LLM rewriting in the OpenAI, Claude and Ollama generators (strict schema, fallback to the local rule); conversational system prompt; wiring; cloud notice mentions conversation turns
+- [ ] T050 [FR-073, FR-062] Chat page sends the last 6 turns, shows "Searched for", styles small talk
+- [ ] T051 [FR-070, FR-071] API and end-to-end conversation tests on the sample corpus
+
 ## Phase 5 — US-3 Generate and load the sample corpus (P2)
 
 - [x] T023 [FR-030, FR-032] `app/adapters/samples.py`: deterministic generator for the 8 files of spec §8 and `eval/golden.yaml` (12 cases)

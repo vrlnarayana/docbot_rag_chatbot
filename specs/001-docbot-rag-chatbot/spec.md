@@ -38,7 +38,7 @@ This first version runs entirely on a laptop with no cloud services, so learners
 - Login, user accounts, multi-tenant access control.
 - Word, Excel, PowerPoint, CAD or email files.
 - Understanding diagrams or photos beyond the text OCR can read from them.
-- Conversation memory: each question is answered independently. The UI shows the session's history, but the server does not use it.
+- Server-side conversation storage. (Follow-up questions are in scope since 2026-10-25: the UI sends the recent turns with each question; see FR-070 to FR-073.)
 - Streaming responses, fine-tuning, agents and tool calling.
 
 ## 3. User scenarios & testing
@@ -119,7 +119,7 @@ A trainer runs the golden question set and sees how many questions found the rig
 - A file over the size limit → rejected before it is read into memory.
 - An encrypted or corrupted PDF → rejected with a clear message; the service keeps running.
 - An image where OCR finds no text → rejected as "no readable text".
-- A very short question (fewer than 3 characters) or a very long one (over 1,000 characters) → validation error.
+- A very short message (fewer than 2 characters) or a very long one (over 1,000 characters) → validation error.
 - A file name with spaces, non-English characters or path segments (`../`) → stored under a safe generated name; the original name is kept for display only.
 - An Ollama generator that is selected but not running → the answer falls back to extractive mode and the response says so (`generator_used = extractive`, `fallback_reason` filled).
 - The embedding model cannot be downloaded on first run → the service starts with the keyword retriever, and the status page says why.
@@ -150,6 +150,12 @@ Requirements use EARS notation. Each one gets at least one test named after it (
 - **FR-017** IF the selected generator is unavailable (not running, timed out after 30 s, or erroring), THEN THE SYSTEM SHALL retry transient errors up to 2 times with exponential backoff and jitter, and then fall back as in FR-016.
 - **FR-018** WHEN no documents are indexed, THE SYSTEM SHALL return a message suggesting the sample corpus be loaded, and SHALL NOT run retrieval.
 - **FR-019** WHERE the generator is set to **openai** or **anthropic**, THE SYSTEM SHALL produce answers through that provider's API with the user's API key, applying the same strict schema, citation validation, retries and extractive fallback as FR-015 to FR-017.
+
+### Conversation
+- **FR-070** WHEN a question arrives with earlier conversation turns, THE SYSTEM SHALL first rewrite it into a standalone question and use that for retrieval, the refusal gates and generation; an LLM generator does the rewrite (strict schema), and otherwise, or if that fails, a local rule combines the follow-up with the previous question. The response SHALL include the standalone question.
+- **FR-071** WHEN the message is small talk (a greeting, thanks, a goodbye, or a question about what DocBot can do), THE SYSTEM SHALL reply with a short friendly message, without retrieval, citations or any LLM call.
+- **FR-072** WHERE an LLM generator is active, THE SYSTEM SHALL phrase answers as natural, conversational sentences while still citing passages and still refusing as in FR-012 to FR-016; earlier turns SHALL NOT be used as a source of facts.
+- **FR-073** THE UI SHALL send at most the last 6 conversation turns with each question, and THE SYSTEM SHALL NOT store conversations.
 
 ### Document management
 - **FR-020** THE SYSTEM SHALL list all documents with id, file name, type, size, page count, chunk count, OCR page count, status and upload time.
@@ -247,7 +253,7 @@ Company **Demo Motors**, motorcycle model **Velo 125**. The generator must put t
 - **Q:** Where are embeddings stored? → **A:** In the same SQLite file as the documents and chunks. With a few thousand chunks, an in-memory cosine search is fast enough, and there is no vector database to install.
 - **Q:** How are scanned pages detected? → **A:** A PDF page with fewer than 20 characters of extractable text is treated as scanned (FR-004).
 - **Q:** Should ingestion be a background job? → **A:** No. The upload request waits for indexing to finish, which keeps the demo simple. CPU-heavy steps (OCR, embedding) run in a worker thread so the API stays responsive.
-- **Q:** Is chat history sent with each question? → **A:** No. Each question is answered on its own (see Scope).
+- **Q:** Is chat history sent with each question? → **A:** ~~No.~~ Amended 2026-10-25: yes, at most the last 6 turns, only to resolve follow-up questions (FR-070 to FR-073). The server stores nothing.
 - **Q:** Should PDFs have their own size limit? → **A:** Yes. PDFs are capped at **1 MB** by default (`DOCBOT_MAX_PDF_MB`), because every page without a text layer is rendered and OCR'd, so a large PDF can tie up the CPU for a long time. Other types keep the 20 MB limit. (Amends FR-003.)
 - **Q:** What is `generator_used` when DocBot refuses or the library is empty and no generator runs? → **A:** `"none"`. It reports truthfully that no generator produced the text (FR-012, FR-018).
 - **Q:** Can users bring their own OpenAI or Claude key? → **A:** Yes (constitution 1.1.0). `DOCBOT_GENERATOR=openai` or `anthropic`, with `DOCBOT_OPENAI_API_KEY` / `OPENAI_API_KEY` or `DOCBOT_ANTHROPIC_API_KEY` / `ANTHROPIC_API_KEY`. Off by default; the status page and UI show when a cloud provider is in use (FR-019, FR-053, FR-054).

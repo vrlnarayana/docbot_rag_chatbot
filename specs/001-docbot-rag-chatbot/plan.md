@@ -165,7 +165,7 @@ All bodies are JSON unless noted. Every route declares `response_model`. Errors 
 | `GET /documents/{id}` | — | `DocumentOut` | 200 · 404 | FR-020 |
 | `GET /documents/{id}/chunks` | — | `list[ChunkOut]` | 200 · 404 | FR-021 |
 | `DELETE /documents/{id}` | — | `DeleteResponse {deleted_id}` | 200 · 404 | FR-022, FR-023 |
-| `POST /ask` | `AskRequest {question: str[3..1000], top_k: int[1..10] = 4}` | `AskResponse` | 200 · 422 | FR-010…018 |
+| `POST /ask` | `AskRequest {question: str[2..1000], top_k: int[1..10] = 4, history: list[ChatTurn] (≤ 6) = []}` | `AskResponse` | 200 · 422 | FR-010…018, FR-070…073 |
 | `POST /samples/generate` | — | `SamplesResponse {files: list[str]}` | 200 | FR-030 |
 | `POST /samples/load` | — | `LoadSamplesResponse {indexed, duplicates, failed: list[FailedFile]}` | 200 | FR-031 |
 | `POST /eval/run` | `EvalRequest {top_k: int = 4}` | `EvalRunResponse {summary: EvalSummary, results: list[EvalCaseResult]}` | 200 · 409 if no docs | FR-040, FR-041 |
@@ -176,8 +176,10 @@ All bodies are JSON unless noted. Every route declares `response_model`. Errors 
 DocumentOut     id, filename, doc_type, size_bytes, page_count, ocr_page_count, chunk_count, status, created_at
 ChunkOut        id, page, ordinal, source, text
 CitationOut     n, chunk_id, document_id, filename, page, score, passage
+ChatTurn        role: "user" | "assistant", content: str[1..2000]
 AskResponse     answer, grounded, citations: list[CitationOut], retriever, generator_used,
-                fallback_reason: str | None, latency_ms
+                fallback_reason: str | None, latency_ms, standalone_question: str | None,
+                small_talk: bool
 EvalCaseResult  question, expected_file, expected_page, retrieved_files, hit, fact_found,
                 expect_refusal, refused, refusal_correct
 EvalSummary     cases, hit_rate_at_k, answer_accuracy, refusal_accuracy, retriever, generator, top_k
@@ -207,6 +209,11 @@ EvalSummary     cases, hit_rate_at_k, answer_accuracy, refusal_accuracy, retriev
 4. **Answerability gate:** tokenise the question (lower-case, split on non-alphanumerics, drop stop-words — including question words such as *what, which, who, how, many, much, does, is, the, for, of* — and strip a trailing `s`). Weight each term by its IDF over all chunks; a term in no chunk gets the maximum IDF. Coverage = (sum of weights of terms found in the retrieved chunks) ÷ (sum of all weights). If coverage is below `MIN_COVERAGE`, refuse. This stops "top speed of the Velo 125" from passing just because "Velo 125" appears in the corpus.
 5. Generate with the configured generator (§7.4), wrapped in the resilient client for Ollama.
 6. Validate the citations (FR-015) and build `CitationOut` items numbered in order of first use.
+
+### 7.2b Conversation (FR-070 to FR-073)
+1. **Small talk first:** a short message that is only a greeting, thanks, goodbye or "what can you do / help" gets a fixed friendly reply (`small_talk = true`, `generator_used = "none"`), with no retrieval.
+2. **Follow-ups:** with history, rewrite the question into a standalone one. An LLM generator is asked to return `{"question": str}` (strict); otherwise, or on failure, the local rule prepends the previous user question when the new one looks like a follow-up (starts with "and", "what about", "how about", "also"; uses it/its/that/they/them/those/this/one; or has fewer than 3 content words).
+3. Steps 1–6 of §7.2 then run on the standalone question. LLM generators get a conversational system prompt.
 
 ### 7.3 Chunking
 Split each page's text into chunks of at most `CHUNK_SIZE` characters with `CHUNK_OVERLAP` overlap. Split at blank lines first, then single newlines, then sentence ends, then spaces. Never cross a page. Drop chunks under 20 characters unless they are the page's only text.
