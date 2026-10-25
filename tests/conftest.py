@@ -49,7 +49,7 @@ async def app(settings: Settings, fake_generator: FakeGenerator) -> AsyncIterato
 
     application = create_app(settings)
     async with application.router.lifespan_context(application):
-        application.state.container.generator = fake_generator
+        application.state.container.qa.generator = fake_generator
         yield application
 
 

@@ -10,7 +10,7 @@ from pydantic import ValidationError
 from app.api.deps import build_container
 from app.api.errors import add_error_handlers
 from app.api.logging import add_request_logging
-from app.api.routes import documents, status
+from app.api.routes import ask, documents, status
 from app.settings import Settings
 
 
@@ -32,13 +32,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         try:
             yield
         finally:
-            await container.engine.dispose()
+            await container.aclose()
 
     app = FastAPI(title="DocBot", version="0.1.0", lifespan=lifespan)
     add_request_logging(app)
     add_error_handlers(app)
     app.include_router(status.router)
     app.include_router(documents.router)
+    app.include_router(ask.router)
     return app
 
 

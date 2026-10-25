@@ -4,6 +4,7 @@ import logging
 from dataclasses import dataclass, field
 
 import anyio
+import httpx
 from fastapi import Request
 from sqlalchemy.ext.asyncio import AsyncEngine
 
@@ -11,10 +12,13 @@ from app.adapters.db import SqliteDocumentRepository, create_engine_for
 from app.adapters.embedder_fastembed import FastEmbedEmbedder
 from app.adapters.extractors import ImageExtractor, OcrEngine, PdfExtractor, TextFileExtractor
 from app.adapters.file_store import LocalFileStore
+from app.adapters.generator_extractive import ExtractiveGenerator
+from app.adapters.generator_ollama import OllamaGenerator
 from app.adapters.retriever_bm25 import Bm25Retriever
 from app.adapters.retriever_vector import VectorRetriever
+from app.core.answerability import AnswerabilityGate
 from app.core.ports import Embedder, Generator, Retriever
-from app.core.services import IngestionService
+from app.core.services import IngestionService, QAService
 from app.settings import Settings
 
 
@@ -25,9 +29,15 @@ class Container:
     repository: SqliteDocumentRepository
     file_store: LocalFileStore
     ingestion: IngestionService
-    retriever: Retriever | None = None
-    generator: Generator | None = None
+    qa: QAService
+    retriever: Retriever
     fallbacks: list[str] = field(default_factory=list)
+    ollama: OllamaGenerator | None = None
+
+    async def aclose(self) -> None:
+        if self.ollama:
+            await self.ollama.aclose()
+        await self.engine.dispose()
 
 
 logger = logging.getLogger("docbot.startup")
@@ -70,18 +80,31 @@ async def build_container(settings: Settings) -> Container:
         max_pdf_bytes=settings.max_pdf_bytes,
     )
     retriever, embedder, fallbacks = await _build_retrieval(settings)
+    gate = AnswerabilityGate()
     ingestion.embedder = embedder
     ingestion.retriever = retriever
+    ingestion.gate = gate
     await ingestion.reembed_stale()
     await ingestion.refresh_retriever()
+
+    extractive = ExtractiveGenerator(gate)
+    ollama = None
+    generator: Generator = extractive
+    if settings.generator == "ollama":
+        client = httpx.AsyncClient(base_url=settings.ollama_url, timeout=settings.llm_timeout_s)
+        ollama = OllamaGenerator(client, settings.ollama_model, settings.ollama_url, extractive)
+        generator = ollama
+    qa = QAService(repository, retriever, generator, gate, settings.min_coverage, extractive)
     return Container(
         settings=settings,
         engine=engine,
         repository=repository,
         file_store=file_store,
         ingestion=ingestion,
+        qa=qa,
         retriever=retriever,
         fallbacks=fallbacks,
+        ollama=ollama,
     )
 
 

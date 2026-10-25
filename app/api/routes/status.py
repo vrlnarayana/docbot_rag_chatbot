@@ -16,7 +16,7 @@ async def health() -> HealthResponse:
 @router.get("/status", response_model=StatusResponse)
 async def status(container: Annotated[Container, Depends(get_container)]) -> StatusResponse:
     settings = container.settings
-    retriever = container.retriever.name if container.retriever else settings.retriever
+    retriever = container.retriever.name
     documents, chunks = await container.repository.counts()
     return StatusResponse(
         retriever=retriever,
