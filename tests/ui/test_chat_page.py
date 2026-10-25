@@ -73,3 +73,44 @@ def test_refusal_is_shown_without_citations(api_client_module: ModuleType) -> No
     at.chat_input[0].set_value("What is the top speed?").run()
     assert "I couldn't find this" in all_text(at)
     assert at.expander == [] or all(not x.label.startswith("[") for x in at.expander)
+
+
+def test_fr_073_follow_up_sends_recent_turns(api_client_module: ModuleType) -> None:
+    import json
+
+    api = FakeApi()
+    at = run_chat(api_client_module, api.transport())
+    for i in range(5):
+        at.chat_input[0].set_value(f"question number {i}").run()
+    asks = [json.loads(r.read()) for r in api.requests if r.url.path == "/ask"]
+    sent = asks[-1]
+    assert sent["question"] == "question number 4"
+    history = sent["history"]
+    assert len(history) == 6  # at most the last 6 turns
+    assert history[-2] == {"role": "user", "content": "question number 3"}
+    assert history[-1]["role"] == "assistant" and "3.5 mm" in history[-1]["content"]
+    assert "history" not in asks[0]  # nothing to send with the first question
+
+
+def test_fr_070_rewritten_follow_up_is_shown(api_client_module: ModuleType) -> None:
+    from tests.ui_fakes import ANSWER
+
+    api = FakeApi()
+    api.routes[("POST", "/ask")] = (200, {**ANSWER, "standalone_question":
+                                          "What is the minimum thickness of the rear brake disc?"})
+    at = run_chat(api_client_module, api.transport())
+    at.chat_input[0].set_value("and the rear one?").run()
+    assert any("Searched for: What is the minimum thickness of the rear brake disc?"
+               in str(c.value) for c in at.caption)
+
+
+def test_fr_071_small_talk_is_a_normal_message(api_client_module: ModuleType) -> None:
+    api = FakeApi()
+    api.routes[("POST", "/ask")] = (200, {
+        "answer": "Hi! I'm DocBot.", "grounded": False, "citations": [], "retriever": "vector",
+        "generator_used": "none", "fallback_reason": None, "latency_ms": 0.1,
+        "standalone_question": None, "small_talk": True})
+    at = run_chat(api_client_module, api.transport())
+    at.chat_input[0].set_value("hi").run()
+    assert any("Hi! I'm DocBot." in str(m.value) for m in at.markdown)
+    assert not any("Hi! I'm DocBot." in str(i.value) for i in at.info)

@@ -54,8 +54,13 @@ class DocBotClient:
     def status(self) -> dict[str, Any]:
         return dict(self._call("GET", "/status"))
 
-    def ask(self, question: str, top_k: int) -> dict[str, Any]:
-        return dict(self._call("POST", "/ask", json={"question": question, "top_k": top_k}))
+    def ask(
+        self, question: str, top_k: int, history: list[dict[str, str]] | None = None
+    ) -> dict[str, Any]:
+        body: dict[str, Any] = {"question": question, "top_k": top_k}
+        if history:
+            body["history"] = history
+        return dict(self._call("POST", "/ask", json=body))
 
     def documents(self) -> list[dict[str, Any]]:
         return list(self._call("GET", "/documents"))

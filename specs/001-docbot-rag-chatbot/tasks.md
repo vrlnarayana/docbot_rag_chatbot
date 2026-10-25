@@ -60,7 +60,7 @@ Conventions: `[P]` = can run in parallel with the other `[P]` tasks in the same 
 - [x] T047 [FR-071] `app/core/conversation.py`: small-talk detection and replies; `QAService` answers small talk without retrieval
 - [x] T048 [FR-070] `QuestionRewriter` port, local follow-up rule, fallback chain; `QAService` uses the standalone question throughout and returns it
 - [x] T049 [FR-070, FR-072, FR-054] LLM rewriting in the OpenAI, Claude and Ollama generators (strict schema, fallback to the local rule); conversational system prompt; wiring; cloud notice mentions conversation turns
-- [ ] T050 [FR-073, FR-062] Chat page sends the last 6 turns, shows "Searched for", styles small talk
+- [x] T050 [FR-073, FR-062] Chat page sends the last 6 turns, shows "Searched for", styles small talk
 - [ ] T051 [FR-070, FR-071] API and end-to-end conversation tests on the sample corpus
 
 ## Phase 5 — US-3 Generate and load the sample corpus (P2)

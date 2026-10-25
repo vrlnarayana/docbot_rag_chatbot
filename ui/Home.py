@@ -1,4 +1,4 @@
-"""DocBot chat page (FR-060, FR-062). Run with `streamlit run ui/Home.py`."""
+"""DocBot chat page (FR-060, FR-062, FR-070 to FR-073). Run with `streamlit run ui/Home.py`."""
 
 from typing import Any
 
@@ -6,6 +6,9 @@ import streamlit as st
 from api_client import ApiError, ApiUnavailable, api_down_banner, client
 
 st.set_page_config(page_title="DocBot · Chat", page_icon="💬", layout="wide")
+
+MAX_TURNS = 6  # FR-073: the API keeps no conversation; we send the most recent turns
+MAX_TURN_CHARS = 2000
 
 
 def plain(text: str) -> str:
@@ -15,7 +18,20 @@ def plain(text: str) -> str:
     return text.replace("\n", "  \n")
 
 
+def recent_turns(messages: list[dict[str, Any]]) -> list[dict[str, str]]:
+    turns = []
+    for message in messages:
+        text = message["content"] if message["role"] == "user" else message["content"]["answer"]
+        turns.append({"role": message["role"], "content": text[:MAX_TURN_CHARS]})
+    return turns[-MAX_TURNS:]
+
+
 def show_answer(reply: dict[str, Any]) -> None:
+    if reply.get("small_talk"):
+        st.markdown(plain(reply["answer"]))
+        return
+    if reply.get("standalone_question"):
+        st.caption(f"🔎 Searched for: {reply['standalone_question']}")
     if not reply["grounded"]:
         st.info(reply["answer"], icon="🔎")
     else:
@@ -63,13 +79,14 @@ for message in st.session_state.messages:
             show_answer(message["content"])
 
 if question := st.chat_input("Ask a question about your documents…"):
+    history = recent_turns(st.session_state.messages)
     st.session_state.messages.append({"role": "user", "content": question})
     with st.chat_message("user"):
         st.markdown(plain(question))
     with st.chat_message("assistant"):
         try:
             with st.spinner("Searching the documents…"):
-                reply = api.ask(question, top_k)
+                reply = api.ask(question, top_k, history)
         except ApiUnavailable as exc:
             api_down_banner(exc)
         except ApiError as exc:
