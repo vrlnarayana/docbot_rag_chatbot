@@ -213,7 +213,7 @@ EvalSummary     cases, hit_rate_at_k, answer_accuracy, refusal_accuracy, retriev
 ### 7.2b Conversation (FR-070 to FR-073)
 1. **Small talk first:** a short message that is only a greeting, thanks, goodbye or "what can you do / help" gets a fixed friendly reply (`small_talk = true`, `generator_used = "none"`), with no retrieval.
 2. **Follow-ups:** with history, rewrite the question into a standalone one. An LLM generator is asked to return `{"question": str}` (strict); otherwise, or on failure, the local rule prepends the previous user question when the new one looks like a follow-up (starts with "and", "what about", "how about", "also"; uses it/its/that/they/them/those/this/one; or has fewer than 3 content words).
-3. Steps 1–6 of §7.2 then run on the standalone question. LLM generators get a conversational system prompt.
+3. Steps 1–6 of §7.2 then run on the standalone question. A local-rule follow-up must also have at least one of its own content words (ignoring it/one/that/… and "what about") in the retrieved passages, or it is refused; otherwise "and who is the CEO?" would be answered with the previous question's passages. LLM generators get a conversational system prompt.
 
 ### 7.3 Chunking
 Split each page's text into chunks of at most `CHUNK_SIZE` characters with `CHUNK_OVERLAP` overlap. Split at blank lines first, then single newlines, then sentence ends, then spaces. Never cross a page. Drop chunks under 20 characters unless they are the page's only text.
